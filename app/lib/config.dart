@@ -1,3 +1,3 @@
 abstract class Config {
-  static const String apiUrl = "http://10.0.2.2:8080";
+  static const String apiUrl = "http://tcceteab2025.ddns.net:8080";
 }

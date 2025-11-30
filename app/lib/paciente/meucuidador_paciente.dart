@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import '../config.dart';
 import 'dart:convert'; // Necessário para converter JSON
-import 'package:algumacoisa/dio_client.dart' as http;
-
-import '../config.dart'; // Necessário para requisições HTTP
+import 'package:http/http.dart' as http; // Necessário para requisições HTTP
 
 // Modelo de Dados do Cuidador (Mantenha este modelo)
 class CaregiverModel {

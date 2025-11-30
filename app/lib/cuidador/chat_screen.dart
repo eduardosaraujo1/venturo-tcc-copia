@@ -8,8 +8,38 @@ class ChatScreen extends StatelessWidget {
 
   const ChatScreen({super.key, required this.chatName, required this.imagePath});
 
+  // Função para obter a inicial do nome
+  String _getInicial(String nome) {
+    if (nome.isEmpty) return '?';
+    // Remove " (Familiar)" se existir e pega a primeira letra
+    final nomeLimpo = nome.replaceAll(RegExp(r'\s*\(Familiar\)'), '');
+    return nomeLimpo.isNotEmpty ? nomeLimpo[0].toUpperCase() : '?';
+  }
+
+  // Função para gerar cor baseada no nome
+  Color _getCorBaseadaNoNome(String nome) {
+    final cores = [
+      Color(0xFF6ABAD5), // Azul principal
+      Color(0xFF4CAF50), // Verde
+      Color(0xFF9C27B0), // Roxo
+      Color(0xFFFF9800), // Laranja
+      Color(0xFFF44336), // Vermelho
+      Color(0xFF2196F3), // Azul
+      Color(0xFF009688), // Teal
+    ];
+    
+    if (nome.isEmpty) return cores[0];
+    
+    // Gera um índice baseado no código ASCII do primeiro caractere
+    final codigo = nome.codeUnits.reduce((a, b) => a + b);
+    return cores[codigo % cores.length];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final inicial = _getInicial(chatName);
+    final corAvatar = _getCorBaseadaNoNome(chatName);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -21,8 +51,16 @@ class ChatScreen extends StatelessWidget {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: AssetImage(imagePath),
+              backgroundColor: corAvatar,
               radius: 20,
+              child: Text(
+                inicial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             SizedBox(width: 10),
             Column(
@@ -35,24 +73,29 @@ class ChatScreen extends StatelessWidget {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.videocam_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => VideoChamadaScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.call_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ChamadaScreen()),
-              );
-            },
-          ),
+          // No ChatScreen, modifique os IconButtons:
+IconButton(
+  icon: Icon(Icons.videocam_outlined),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoChamadaScreen(nomeContato: chatName),
+      ),
+    );
+  },
+),
+IconButton(
+  icon: Icon(Icons.call_outlined),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChamadaScreen(nomeContato: chatName),
+      ),
+    );
+  },
+),
         ],
       ),
       body: Column(
@@ -69,14 +112,16 @@ class ChatScreen extends StatelessWidget {
                     text: 'Olá, tudo bem?',
                     isSentByMe: true,
                     time: '09:25 AM',
-                    imagePath: 'assets/henrique_bueno.png',
+                    inicial: _getInicial('Você'), // Inicial para suas mensagens
+                    corAvatar: _getCorBaseadaNoNome('Você'),
                   ),
                   _buildMessageBubble(
                     context,
                     text: 'Oi, tudo sim, e vc',
                     isSentByMe: false,
                     time: '09:25 AM',
-                    imagePath: 'assets/henrique_bueno.png',
+                    inicial: inicial, // Inicial da pessoa com quem está conversando
+                    corAvatar: corAvatar,
                   ),
                 ],
               ),
@@ -104,7 +149,8 @@ class ChatScreen extends StatelessWidget {
     required String text,
     required bool isSentByMe,
     required String time,
-    required String imagePath,
+    required String inicial,
+    required Color corAvatar,
   }) {
     final alignment = isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start;
     final color = isSentByMe ? Color(0xFFE3F2FD) : Colors.grey.shade200;
@@ -115,28 +161,39 @@ class ChatScreen extends StatelessWidget {
       bottomRight: isSentByMe ? Radius.circular(0) : Radius.circular(12),
     );
 
-    return Row(
-      mainAxisAlignment: alignment,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        if (!isSentByMe)
-          CircleAvatar(
-            backgroundImage: AssetImage(imagePath),
-            radius: 16,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: alignment,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isSentByMe)
+            CircleAvatar(
+              backgroundColor: corAvatar,
+              radius: 16,
+              child: Text(
+                inicial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          SizedBox(width: 8),
+          Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: borderRadius,
+            ),
+            child: Text(text),
           ),
-        SizedBox(width: 8),
-        Container(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: borderRadius,
-          ),
-          child: Text(text),
-        ),
-        SizedBox(width: 8),
-        Text(time, style: TextStyle(fontSize: 10, color: Colors.grey)),
-      ],
+          SizedBox(width: 8),
+          Text(time, style: TextStyle(fontSize: 10, color: Colors.grey)),
+        ],
+      ),
     );
   }
 

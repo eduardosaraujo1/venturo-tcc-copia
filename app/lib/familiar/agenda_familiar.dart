@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'detalhes_agenda.dart';
 

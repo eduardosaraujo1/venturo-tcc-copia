@@ -1,37 +1,21 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'chat_screen.dart';
 
 class ConversasScreen extends StatelessWidget {
   const ConversasScreen({super.key});
 
-  // Função para carregar dados do cuidador
-  Future<Map<String, dynamic>> _carregarCuidador() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${Config.apiUrl}/api/cuidador/perfil'),
-      );
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-    } catch (e) {
-      print('Erro ao carregar cuidador: $e');
-    }
-    return {};
-  }
-
-  // Função para carregar dados do paciente
   Future<Map<String, dynamic>> _carregarPaciente() async {
     try {
       final response = await http.get(
-        Uri.parse('${Config.apiUrl}/api/paciente/cadastrocompleto'),
+        Uri.parse('${Config.apiUrl}/api/paciente/perfil'),
       );
       if (response.statusCode == 200) {
         return json.decode(response.body);
+      } else {
+        print('Erro API Paciente: ${response.statusCode}');
       }
     } catch (e) {
       print('Erro ao carregar paciente: $e');
@@ -47,11 +31,48 @@ class ConversasScreen extends StatelessWidget {
       );
       if (response.statusCode == 200) {
         return json.decode(response.body);
+      } else {
+        print('Erro API Familiar: ${response.statusCode}');
       }
     } catch (e) {
       print('Erro ao carregar familiar: $e');
     }
     return {};
+  }
+
+  // Função para obter a inicial do nome
+  String _getInicial(String nome) {
+    if (nome.isEmpty ||
+        nome == 'Paciente' ||
+        nome == 'Familiar' ||
+        nome == 'Cuidador') {
+      return '?';
+    }
+    // Remove "Sr." ou "Sra." se existirem e pega a primeira letra do primeiro nome
+    final nomeLimpo = nome.replaceAll(
+      RegExp(r'^Sr\.\s*|^Sra\.\s*', caseSensitive: false),
+      '',
+    );
+    return nomeLimpo.isNotEmpty ? nomeLimpo[0].toUpperCase() : '?';
+  }
+
+  // Função para gerar cor baseada no nome (para o CircleAvatar)
+  Color _getCorBaseadaNoNome(String nome) {
+    final cores = [
+      Color(0xFF6ABAD5), // Azul principal
+      Color(0xFF4CAF50), // Verde
+      Color(0xFF9C27B0), // Roxo
+      Color(0xFFFF9800), // Laranja
+      Color(0xFFF44336), // Vermelho
+      Color(0xFF2196F3), // Azul
+      Color(0xFF009688), // Teal
+    ];
+
+    if (nome.isEmpty) return cores[0];
+
+    // Gera um índice baseado no código ASCII do primeiro caractere
+    final codigo = nome.codeUnits.reduce((a, b) => a + b);
+    return cores[codigo % cores.length];
   }
 
   Widget _buildTab(IconData icon, String title, bool isSelected) {
@@ -77,7 +98,8 @@ class ConversasScreen extends StatelessWidget {
     BuildContext context, {
     required String name,
     required String message,
-    required String imagePath,
+    required String inicial,
+    required Color corAvatar,
     required int unreadCount,
     String? lastMessageTime,
   }) {
@@ -86,8 +108,7 @@ class ConversasScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                ChatScreen(chatName: name, imagePath: imagePath),
+            builder: (context) => ChatScreen(chatName: name, imagePath: ''),
           ),
         );
       },
@@ -101,10 +122,16 @@ class ConversasScreen extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundImage: AssetImage(imagePath),
+              backgroundColor: corAvatar,
               radius: 28,
-              // Fallback para caso a imagem não carregue
-              child: imagePath.isEmpty ? Icon(Icons.person) : null,
+              child: Text(
+                inicial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -167,11 +194,7 @@ class ConversasScreen extends StatelessWidget {
         ),
       ),
       body: FutureBuilder(
-        future: Future.wait([
-          _carregarCuidador(),
-          _carregarPaciente(),
-          _carregarFamiliar(),
-        ]),
+        future: Future.wait([_carregarPaciente(), _carregarFamiliar()]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -197,33 +220,47 @@ class ConversasScreen extends StatelessWidget {
                     'Erro ao carregar dados',
                     style: TextStyle(fontSize: 16, color: Colors.red),
                   ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Verifique se as APIs estão rodando',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
                 ],
               ),
             );
           }
 
-          final cuidadorData = snapshot.data?[0] ?? {};
-          final pacienteData = snapshot.data?[1] ?? {};
-          final familiarData = snapshot.data?[2] ?? {};
+          final pacienteData = snapshot.data?[0] ?? {};
+          final familiarData = snapshot.data?[1] ?? {};
+
+          // DEBUG: Mostrar dados recebidos
+          print('Dados Paciente: $pacienteData');
+          print('Dados Familiar: $familiarData');
 
           // Extrair nomes das APIs
-          final cuidadorNome = cuidadorData['nome'] ?? 'Cuidador';
-          final pacienteNome = pacienteData['nome'] ?? 'Paciente';
-          final familiarNome = familiarData['nome'] ?? 'Familiar';
+          final pacienteNome =
+              pacienteData['nome'] ?? pacienteData['name'] ?? 'Paciente';
+          final familiarNome =
+              familiarData['nome'] ?? familiarData['name'] ?? 'Familiar';
 
-          // Formatar o nome do paciente (adicionar "Sr." ou "Sra." se necessário)
+          // Formatar o nome do paciente
           String formatarNomePaciente(String nome) {
             if (nome == 'Paciente') return nome;
-            // Verifica se já começa com Sr. ou Sra.
             if (!nome.toLowerCase().startsWith('sr.') &&
                 !nome.toLowerCase().startsWith('sra.')) {
-              // Aqui você pode adicionar lógica para determinar gênero se tiver essa informação
-              return 'Sr. $nome';
+              return nome;
             }
             return nome;
           }
 
           final pacienteNomeFormatado = formatarNomePaciente(pacienteNome);
+
+          // Obter iniciais e cores para cada pessoa
+          final familiarInicial = _getInicial(familiarNome);
+          final pacienteInicial = _getInicial(pacienteNomeFormatado);
+
+          final familiarCor = _getCorBaseadaNoNome(familiarNome);
+          final pacienteCor = _getCorBaseadaNoNome(pacienteNomeFormatado);
 
           return SingleChildScrollView(
             child: Column(
@@ -244,9 +281,10 @@ class ConversasScreen extends StatelessWidget {
                 // Conversa com o Familiar
                 _buildChatTile(
                   context,
-                  name: '$familiarNome (Familiar do $pacienteNomeFormatado)',
+                  name: '$familiarNome (Familiar)',
                   message: 'Ele está bem hoje??',
-                  imagePath: 'assets/pessoa1.jpg',
+                  inicial: familiarInicial,
+                  corAvatar: familiarCor,
                   unreadCount: 4,
                   lastMessageTime: '10:30',
                 ),
@@ -256,19 +294,10 @@ class ConversasScreen extends StatelessWidget {
                   context,
                   name: pacienteNomeFormatado,
                   message: 'Eu estou bem',
-                  imagePath: 'assets/Paulosikera.jpg',
+                  inicial: pacienteInicial,
+                  corAvatar: pacienteCor,
                   unreadCount: 0,
                   lastMessageTime: '09:15',
-                ),
-
-                // Conversa com o Cuidador (opcional)
-                _buildChatTile(
-                  context,
-                  name: cuidadorNome,
-                  message: 'Cuidador principal',
-                  imagePath: 'assets/cuidador.jpg',
-                  unreadCount: 1,
-                  lastMessageTime: 'Ontem',
                 ),
               ],
             ),

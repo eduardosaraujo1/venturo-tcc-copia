@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'confirmar_agendamento_medicamento_screen.dart';
 
 class Patient {
@@ -174,13 +172,6 @@ class _SelecionarPacienteMedicamentoState
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navegação para adicionar novo paciente
-        },
-        backgroundColor: const Color(0xFF6ABAD5),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 
@@ -290,15 +281,6 @@ class _SelecionarPacienteMedicamentoState
             offset: const Offset(0, 3),
           ),
         ],
-      ),
-      child: const TextField(
-        decoration: InputDecoration(
-          hintText: 'Buscar pacientes',
-          hintStyle: TextStyle(color: Colors.grey),
-          prefixIcon: Icon(Icons.search, color: Color(0xFF6ABAD5)),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        ),
       ),
     );
   }

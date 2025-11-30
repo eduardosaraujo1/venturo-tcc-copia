@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-import 'dart:convert';
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HistoricoDeRegistros extends StatefulWidget {
   const HistoricoDeRegistros({super.key});

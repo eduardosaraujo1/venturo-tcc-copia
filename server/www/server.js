@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors"); // <--- 1. Importação do CORS
 const mysql = require("mysql2/promise");
 const app = express();
-const port = process.env.PORT || 8000;
+const port = 8000;
 
 app.use(cors({ origin: "*" }));
 
@@ -1218,7 +1218,7 @@ app.put("/api/consulta/:id/status", async (req, res) => {
             message: "Status atualizado com sucesso",
         });
     } catch (err) {
-        console.error("❌ Erro ao atualizar status:", err);
+        console.error("❌ Erro ao atualizar status da consulta:", err);
         return res.status(500).json({
             success: false,
             error: "Erro interno do servidor",
@@ -1254,7 +1254,7 @@ app.put("/api/medicamento/:id/status", async (req, res) => {
             message: "Status atualizado com sucesso",
         });
     } catch (err) {
-        console.error("❌ Erro ao atualizar status:", err);
+        console.error("❌ Erro ao atualizar status do medicamento:", err);
         return res.status(500).json({
             success: false,
             error: "Erro interno do servidor",
@@ -1345,7 +1345,6 @@ app.put("/api/tarefa/:id/status", async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        // Validar status permitidos
         const statusPermitidos = ["pendente", "atrasada", "feita", "cancelada"];
         if (!statusPermitidos.includes(status)) {
             return res.status(400).json({
@@ -1354,7 +1353,6 @@ app.put("/api/tarefa/:id/status", async (req, res) => {
             });
         }
 
-        // Buscar tarefa atual com mais detalhes
         const [tarefas] = await pool.execute(
             `SELECT t.*, p.nome as paciente_nome 
              FROM tarefas t 
@@ -1372,7 +1370,6 @@ app.put("/api/tarefa/:id/status", async (req, res) => {
 
         const tarefa = tarefas[0];
 
-        // Atualizar status da tarefa
         const query = "UPDATE tarefas SET status = ? WHERE id = ?";
         const [result] = await pool.execute(query, [status, id]);
 
@@ -1383,7 +1380,6 @@ app.put("/api/tarefa/:id/status", async (req, res) => {
             });
         }
 
-        // Buscar tarefa atualizada para retornar
         const [tarefaAtualizada] = await pool.execute(
             `SELECT t.*, p.nome as paciente_nome 
              FROM tarefas t 
@@ -1659,7 +1655,6 @@ app.get("/api/cuidador/familiar/meus-dados", async (req, res) => {
 
 app.get("/api/familiar/perfil", async (req, res) => {
     const id = 1;
-
     const query = `
         SELECT 
             nome, 
@@ -2295,6 +2290,11 @@ app.get("/api/registrosdiarios", async (req, res) => {
     }
 });
 
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
+
 app.post("/api/delete-account", async (req, res) => {
     try {
         const { userId, confirmacao } = req.body;
@@ -2524,6 +2524,75 @@ app.post("/api/paciente/delete-account", async (req, res) => {
     }
 });
 
+// Adicione este endpoint no seu backend
+// No seu arquivo do servidor Node.js (ex: server.js)
+app.get("/api/familiar/paciente", async (req, res) => {
+    try {
+        const nomeTabela = "pacientes";
+
+        // Buscar o primeiro paciente
+        const sql = `SELECT nome, idade, tipo_sanguineo, comorbidade FROM ${nomeTabela} LIMIT 1`;
+
+        const [result] = await pool.execute(sql);
+
+        if (result.length === 0) {
+            return res.status(404).json({ error: "Nenhum paciente encontrado" });
+        }
+
+        const paciente = result[0];
+
+        res.status(200).json({
+            nome: paciente.nome,
+            idade: paciente.idade,
+            tipo_sanguineo: paciente.tipo_sanguineo,
+            comorbidade: paciente.comorbidade,
+            parentesco: "pai", // Você pode ajustar isso conforme sua lógica
+        });
+    } catch (error) {
+        console.error("Erro ao buscar dados do paciente:", error);
+        res.status(500).json({ error: "Erro interno do servidor ao buscar dados do paciente." });
+    }
+});
+
+app.get("/api/paciente/perfil", async (req, res) => {
+    const id = 1; // Usando um ID fixo para teste, como nos outros endpoints
+
+    const query = `
+        SELECT 
+            nome, 
+            idade,
+            peso,
+            tipo_sanguineo,
+            comorbidade
+        FROM 
+            pacientes
+        WHERE 
+            id = ?; 
+    `;
+
+    try {
+        const [results] = await pool.execute(query, [id]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Paciente de teste (ID 1) não encontrado no banco de dados." });
+        }
+
+        const dadosPaciente = results[0]; // Retorna os dados do paciente
+        res.status(200).json({
+            nome: dadosPaciente.nome, // <--- Este campo é o que o Flutter espera
+            idade: dadosPaciente.idade,
+            peso: dadosPaciente.peso,
+            tipo_sanguineo: dadosPaciente.tipo_sanguineo,
+            comorbidade: dadosPaciente.comorbidade,
+        });
+    } catch (error) {
+        console.error("Erro ao buscar perfil do paciente no BD:", error);
+        res.status(500).json({ error: "Erro interno do servidor ao carregar dados do paciente." });
+    }
+});
+
+// Adicione este console.log para verificar se o endpoint está registrado
+console.log(`Endpoint GET familiar: http://localhost:${port}/api/familiar/paciente`);
 // --- 5. INICIA O SERVIDOR ---
 app.listen(port, () => {
     console.log(`Servidor Node.js rodando em http://localhost:${port}`);
@@ -2564,4 +2633,6 @@ app.listen(port, () => {
     console.log(`Endpoint POST famiiliar: http:// localhost:${port}/api/delete-account`);
     console.log(`Endpoint POST famiiliar: http:// localhost:${port}/api/familiar/delete-account`);
     console.log(`Endpoint POST famiiliar: http:// localhost:${port}/api/paciente/delete-account`);
+    console.log(`Endpoint POST famiiliar: http:// localhost:${port}/api/familiar/paciente`);
+    console.log(`Endpoint POST famiiliar: http:// localhost:${port}/api/paciente/perfil`);
 });

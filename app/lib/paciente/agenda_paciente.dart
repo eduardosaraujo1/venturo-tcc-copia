@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'detalhes_agenda.dart';
 
 class AgendaPaciente extends StatefulWidget {

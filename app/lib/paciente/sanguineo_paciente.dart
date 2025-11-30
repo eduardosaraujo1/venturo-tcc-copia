@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import '../config.dart';
 import 'package:http/http.dart'
     as http; // Importação necessária para requisições HTTP
 import 'dart:convert'; // Importação necessária para jsonEncode
 
 // Certifique-se de que o caminho de importação para a próxima tela esteja correto
 import 'package:algumacoisa/paciente/comorbidade_paciente.dart';
-
-import '../config.dart';
 
 // --- CONFIGURAÇÃO DA API ---
 const String patientBloodTypeApiUrl = '${Config.apiUrl}/api/paciente/sanguineo';

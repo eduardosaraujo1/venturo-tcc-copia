@@ -172,11 +172,7 @@ class ConfirmacaoMedicamentos extends StatelessWidget {
       ),
       // Removida a propriedade 'bottomNavigationBar'
       // Removida a propriedade 'floatingActionButtonLocation'
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: const Color(0xFF6ABAD5),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+     
     );
   }
 

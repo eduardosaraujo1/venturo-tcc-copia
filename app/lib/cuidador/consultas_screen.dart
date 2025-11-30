@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // =======================
 // 1. MODELOS DE DADOS
@@ -281,11 +279,11 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                       ),
                       const SizedBox(height: 4),
                       _buildInfoRow(
-                        '👤',
+                        '',
                         'Idade: ${paciente.idade ?? "N/A"} anos',
                       ),
                       _buildInfoRow(
-                        '🩸',
+                        '',
                         'Tipo Sanguíneo: ${paciente.tipoSanguineo ?? "N/A"}',
                       ),
                     ],
@@ -303,7 +301,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Text('🏥', style: const TextStyle(fontSize: 14)),
+                    Text('', style: const TextStyle(fontSize: 14)),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -463,7 +461,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
 
           // Médico
           Text(
-            '👨‍⚕️ Dr. ${consulta.medicoNome} (CRM: ${consulta.crmMedico})',
+            ' Dr. ${consulta.medicoNome} (CRM: ${consulta.crmMedico})',
             style: const TextStyle(fontSize: 12, color: Colors.black54),
             overflow: TextOverflow.ellipsis,
           ),
@@ -495,7 +493,7 @@ class _ConsultasScreenState extends State<ConsultasScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                '📋 ${consulta.especialidade}',
+                ' ${consulta.especialidade}',
                 style: const TextStyle(fontSize: 11, color: Colors.black45),
               ),
             ),

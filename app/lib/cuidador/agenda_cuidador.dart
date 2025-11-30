@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:algumacoisa/config.dart';
+import 'package:algumacoisa/paciente/detalhes_agenda.dart';
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
+import 'package:http/http.dart' as http;
 
-import '../paciente/detalhes_agenda.dart';
+import '../config.dart';
 
 class AgendaCuidador extends StatefulWidget {
   const AgendaCuidador({super.key});

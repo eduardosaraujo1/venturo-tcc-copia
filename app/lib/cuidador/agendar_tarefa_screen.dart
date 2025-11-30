@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:algumacoisa/cuidador/tarefa1.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AgendarTarefaScreen extends StatefulWidget {
   const AgendarTarefaScreen({super.key});
@@ -18,8 +16,11 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
   String? _selectedTime;
   final TextEditingController _descricaoController = TextEditingController();
   final TextEditingController _motivoController = TextEditingController();
+  final TextEditingController _horaPersonalizadaController =
+      TextEditingController();
 
   bool _isLoading = false;
+  bool _mostrarCampoHoraPersonalizada = false;
 
   Future<void> _salvarTarefa() async {
     if (_selectedTime == null) {
@@ -48,7 +49,6 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
       final Map<String, dynamic> tarefaData = {
         'cuidador_id': 1, // ID do cuidador logado
         'paciente_id': 1,
-
         'descricao': _descricaoController.text,
         'motivacao': _motivoController.text,
         'data_tarefa': selectedDateTime.toIso8601String(),
@@ -95,6 +95,33 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
         });
       }
     }
+  }
+
+  void _validarEHoraPersonalizada() {
+    final horaTexto = _horaPersonalizadaController.text.trim();
+
+    // Validar formato HH:mm
+    final regex = RegExp(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$');
+    if (!regex.hasMatch(horaTexto)) {
+      _mostrarSnackBar('Formato de hora inválido. Use HH:mm (ex: 14:30)');
+      return;
+    }
+
+    // Validar se a hora é válida
+    final partes = horaTexto.split(':');
+    final hora = int.parse(partes[0]);
+    final minuto = int.parse(partes[1]);
+
+    if (hora < 0 || hora > 23 || minuto < 0 || minuto > 59) {
+      _mostrarSnackBar('Hora inválida. Use valores entre 00:00 e 23:59');
+      return;
+    }
+
+    setState(() {
+      _selectedTime = horaTexto;
+      _mostrarCampoHoraPersonalizada = false;
+      _horaPersonalizadaController.clear();
+    });
   }
 
   void _mostrarSnackBar(String mensagem) {
@@ -147,6 +174,134 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
               ),
               SizedBox(height: 16),
               _buildTimeGrid(),
+
+              // Botão para adicionar horário personalizado
+              SizedBox(height: 16),
+              if (!_mostrarCampoHoraPersonalizada)
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _mostrarCampoHoraPersonalizada = true;
+                      _selectedTime = null;
+                    });
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: corPrincipal),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, color: corPrincipal, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'Adicionar Horário Personalizado',
+                        style: TextStyle(color: corPrincipal),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Campo para horário personalizado
+              if (_mostrarCampoHoraPersonalizada)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 16),
+                    Text(
+                      'Digite o horário (HH:mm):',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: corPrincipal,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _horaPersonalizadaController,
+                            decoration: InputDecoration(
+                              hintText: 'Ex: 14:30',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: corPrincipal),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            keyboardType: TextInputType.datetime,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _validarEHoraPersonalizada,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: corPrincipal,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'OK',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _mostrarCampoHoraPersonalizada = false;
+                              _horaPersonalizadaController.clear();
+                            });
+                          },
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Formato: HH:mm (ex: 09:15, 14:30, 23:45)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+
+              // Horário selecionado
+              if (_selectedTime != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: corPrincipal.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: corPrincipal.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.access_time, color: corPrincipal),
+                        SizedBox(width: 8),
+                        Text(
+                          'Horário selecionado: $_selectedTime',
+                          style: TextStyle(
+                            color: corPrincipal,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               SizedBox(height: 80),
               Padding(
                 padding: const EdgeInsets.only(bottom: 24.0),
@@ -244,6 +399,7 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
                 setState(() {
                   _selectedDate = DateTime(year, month - 1, 1);
                   _selectedTime = null;
+                  _mostrarCampoHoraPersonalizada = false;
                 });
               },
             ),
@@ -262,6 +418,7 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
                 setState(() {
                   _selectedDate = DateTime(year, month + 1, 1);
                   _selectedTime = null;
+                  _mostrarCampoHoraPersonalizada = false;
                 });
               },
             ),
@@ -317,6 +474,7 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
                       setState(() {
                         _selectedDate = DateTime(year, month, dayInt);
                         _selectedTime = null;
+                        _mostrarCampoHoraPersonalizada = false;
                       });
                     }
                   : null,
@@ -379,12 +537,14 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
       itemCount: times.length,
       itemBuilder: (context, index) {
         final time = times[index];
-        final isSelected = _selectedTime == time;
+        final isSelected =
+            _selectedTime == time && !_mostrarCampoHoraPersonalizada;
 
         return OutlinedButton(
           onPressed: () {
             setState(() {
               _selectedTime = time;
+              _mostrarCampoHoraPersonalizada = false;
             });
           },
           style: OutlinedButton.styleFrom(
@@ -428,5 +588,13 @@ class _AgendarTarefaScreenState extends State<AgendarTarefaScreen> {
       "Dezembro",
     ];
     return months[month - 1];
+  }
+
+  @override
+  void dispose() {
+    _descricaoController.dispose();
+    _motivoController.dispose();
+    _horaPersonalizadaController.dispose();
+    super.dispose();
   }
 }

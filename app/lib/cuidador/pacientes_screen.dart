@@ -1,11 +1,9 @@
-import 'dart:convert';
-
-import 'package:algumacoisa/familiar/Registraofamiliar.dart';
 import 'package:algumacoisa/paciente/acesso_paciente.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'package:algumacoisa/familiar/Registraofamiliar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class PacientesScreen extends StatefulWidget {
   const PacientesScreen({super.key});

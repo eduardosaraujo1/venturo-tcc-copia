@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:algumacoisa/cuidador/registros_diarios_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SelecionarPacienteScreen extends StatefulWidget {
   const SelecionarPacienteScreen({super.key});
@@ -85,6 +83,27 @@ class _SelecionarPacienteScreenState extends State<SelecionarPacienteScreen> {
             .toList();
       });
     }
+  }
+
+  // Função para obter a inicial do nome do paciente
+  String _getInitial(String nome) {
+    if (nome.isEmpty) return '?';
+    return nome[0].toUpperCase();
+  }
+
+  // Função para gerar uma cor baseada no nome (para consistência)
+  Color _getAvatarColor(String nome) {
+    final colors = [
+      const Color(0xFF62A7D2),
+      const Color(0xFF6ABAD5),
+      const Color(0xFF1D3B51),
+      const Color(0xFF4CAF50),
+      const Color(0xFF9C27B0),
+      const Color(0xFFFF9800),
+      const Color(0xFF795548),
+    ];
+    final index = nome.hashCode % colors.length;
+    return colors[index];
   }
 
   @override
@@ -188,10 +207,18 @@ class _SelecionarPacienteScreenState extends State<SelecionarPacienteScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
+            // Avatar com a inicial do nome
             CircleAvatar(
               radius: 30,
-              backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, size: 30, color: Colors.grey),
+              backgroundColor: _getAvatarColor(paciente.nome),
+              child: Text(
+                _getInitial(paciente.nome),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(

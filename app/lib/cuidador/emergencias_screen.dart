@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class EmergenciasScreen extends StatefulWidget {
   const EmergenciasScreen({super.key});
@@ -73,8 +71,12 @@ class _EmergenciasScreenState extends State<EmergenciasScreen> {
           },
         ),
         title: const Text(
-          'Emergências',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          'EMERGÊNCIAS',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         centerTitle: true,
       ),
@@ -97,6 +99,27 @@ class _EmergenciasScreenState extends State<EmergenciasScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: <Widget>[
+                  const SizedBox(height: 16),
+                  // Título adicional em destaque
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [],
+                    ),
+                    child: const Text(
+                      'EMERGÊNCIAS',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -253,7 +276,7 @@ class _EmergenciasScreenState extends State<EmergenciasScreen> {
                     child: const Center(
                       child: Icon(
                         Icons.warning_amber_rounded,
-                        color: Colors.red,
+                        color: Color.fromARGB(255, 255, 255, 255),
                         size: 60,
                       ),
                     ),
@@ -319,7 +342,7 @@ class _EmergenciasScreenState extends State<EmergenciasScreen> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
+                          foregroundColor: const Color.fromARGB(255, 0, 0, 0),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25.0),
                           ),

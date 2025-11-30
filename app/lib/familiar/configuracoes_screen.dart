@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:algumacoisa/cuidador/trocadesenha.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'notificacoes_screen.dart';
 
 class ConfiguracoesScreen extends StatelessWidget {
@@ -69,9 +67,9 @@ class ConfiguracoesScreen extends StatelessWidget {
       if (context.mounted) Navigator.of(context).pop();
 
       if (response['success']) {
-        // Conta deletada com sucesso
+        // Conta deletada com sucesso - navegar para tela de login
         if (context.mounted) {
-          _mostrarSucesso(context);
+          _navegarParaLogin(context);
         }
       } else {
         // Erro ao deletar conta
@@ -87,26 +85,11 @@ class ConfiguracoesScreen extends StatelessWidget {
     }
   }
 
-  void _mostrarSucesso(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Sucesso'),
-          content: const Text('Conta deletada com sucesso!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/login', (route) => false);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+  void _navegarParaLogin(BuildContext context) {
+    // Navegar para a tela de login inicial removendo todas as rotas anteriores
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/login', // Certifique-se de que esta rota está definida no seu MaterialApp
+      (Route<dynamic> route) => false, // Remove todas as rotas da pilha
     );
   }
 
@@ -134,7 +117,8 @@ class ConfiguracoesScreen extends StatelessWidget {
   Future<Map<String, dynamic>> deletarContaAPI() async {
     try {
       // **IMPORTANTE: Use o IP da sua máquina, não localhost**
-      const String baseUrl = Config.apiUrl; // Substitua pelo IP do seu servidor
+      const String baseUrl =
+          '${Config.apiUrl}'; // Substitua pelo IP do seu servidor
 
       final userId = await _obterUserId();
 

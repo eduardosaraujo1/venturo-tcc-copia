@@ -1,15 +1,13 @@
-import 'dart:convert'; // Para decodificar a resposta JSON
-
 import 'package:flutter/material.dart';
+import '../config.dart';
+import 'dart:convert'; // Para decodificar a resposta JSON
 import 'package:http/http.dart'
     as http; // Adicionar esta biblioteca no pubspec.yaml
-
-import '../config.dart';
+import 'perfil_screen.dart';
 import 'configuracoes_screen.dart';
+import 'politica_privacidade_screen.dart';
 import 'historico_registros_screen.dart';
 import 'login_screen.dart';
-import 'perfil_screen.dart';
-import 'politica_privacidade_screen.dart';
 
 // Modelo de Dados Mínimo para o Perfil
 class PacientePerfil {

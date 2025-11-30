@@ -1,14 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'confirmacao_registro.dart';
-import 'selecionar_paciente_screen.dart'; // Importe onde está a classe Paciente
+import 'selecionar_paciente_screen.dart';
 
 class SinaisClinicosScreen extends StatefulWidget {
-  final Paciente paciente; // Tipo específico
+  final Paciente paciente;
 
   const SinaisClinicosScreen({super.key, required this.paciente});
 
@@ -23,6 +21,7 @@ class _SinaisClinicosScreenState extends State<SinaisClinicosScreen> {
   final TextEditingController _outrasObservacoesController =
       TextEditingController();
   bool _isLoading = false;
+  bool _alreadySaved = false; // ✅ ADICIONE ESTA FLAG
 
   @override
   void dispose() {
@@ -33,8 +32,30 @@ class _SinaisClinicosScreenState extends State<SinaisClinicosScreen> {
     super.dispose();
   }
 
+  // Função para obter a inicial do nome do paciente
+  String _getInitial(String nome) {
+    if (nome.isEmpty) return '?';
+    return nome[0].toUpperCase();
+  }
+
+  // Função para gerar uma cor baseada no nome
+  Color _getAvatarColor(String nome) {
+    final colors = [
+      const Color(0xFF62A7D2),
+      const Color(0xFF6ABAD5),
+      const Color(0xFF1D3B51),
+      const Color(0xFF4CAF50),
+      const Color(0xFF9C27B0),
+      const Color(0xFFFF9800),
+      const Color(0xFF795548),
+    ];
+    final index = nome.hashCode % colors.length;
+    return colors[index];
+  }
+
   Future<void> _salvarSinaisClinicos() async {
-    if (_isLoading) return;
+    // ✅ VERIFICA: Se já está salvando OU se já salvou antes
+    if (_isLoading || _alreadySaved) return;
 
     // Validações básicas
     if (_temperaturaController.text.isEmpty &&
@@ -74,11 +95,11 @@ class _SinaisClinicosScreenState extends State<SinaisClinicosScreen> {
         body: json.encode(requestBody),
       );
 
-      // CORREÇÃO: Aceitar tanto 200 quanto 201 como sucesso
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
 
         if (data['success'] == true) {
+          _alreadySaved = true; // ✅ MARCA COMO JÁ SALVO
           _navegarParaConfirmacao();
         } else {
           _mostrarErro(data['message'] ?? 'Erro ao salvar sinais clínicos');
@@ -109,12 +130,8 @@ class _SinaisClinicosScreenState extends State<SinaisClinicosScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => ConfirmacaoScreen()),
-      (route) => false, // Remove todas as rotas anteriores
+      (route) => false,
     );
-  }
-
-  void _pularEtapa() {
-    _navegarParaConfirmacao();
   }
 
   @override
@@ -137,14 +154,8 @@ class _SinaisClinicosScreenState extends State<SinaisClinicosScreen> {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: _isLoading ? null : _pularEtapa,
-            child: _isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text('Pular', style: TextStyle(color: Colors.grey)),
+            onPressed: null, // ✅ DESABILITADO
+            child: Text('Próximo', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -158,8 +169,15 @@ class _SinaisClinicosScreenState extends State<SinaisClinicosScreen> {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: Colors.grey[300],
-                    child: Icon(Icons.person, size: 40, color: Colors.grey),
+                    backgroundColor: _getAvatarColor(widget.paciente.nome),
+                    child: Text(
+                      _getInitial(widget.paciente.nome),
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   SizedBox(height: 8),
                   Text(

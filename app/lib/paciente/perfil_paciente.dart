@@ -1,12 +1,13 @@
+import 'dart:convert';
+
 import 'package:algumacoisa/cuidador/login_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:algumacoisa/paciente/MeuPerfil_paciente.dart';
 import 'package:algumacoisa/paciente/configuracoes_screen.dart';
 import 'package:algumacoisa/paciente/historicoregistro_paciente.dart';
 import 'package:algumacoisa/paciente/home_paciente.dart';
 import 'package:algumacoisa/paciente/meucuidador_paciente.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../config.dart';
 
@@ -86,7 +87,6 @@ class _PerfilPacienteState extends State<PerfilPaciente> {
     final nomeCompleto = _perfilData['nome'] ?? '';
     final inicial = _getInicial(nomeCompleto);
     final avatarColor = _getAvatarColor(inicial);
-    // ignore: unused_local_variable
     final nomeExibicao = nomeCompleto.isNotEmpty
         ? nomeCompleto.split(' ').first
         : 'Paciente';

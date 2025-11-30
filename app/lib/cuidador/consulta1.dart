@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'confirmar_agendamento_medicamento_screen.dart';
 
 class Patient {

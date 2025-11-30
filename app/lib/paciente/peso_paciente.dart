@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http; // Adicionar o pacote http
+import '../config.dart';
+import 'package:http/http.dart' as http; // Adicionar o pacote http
 import 'dart:convert'; // Necessário para jsonEncode
 
 // Certifique-se de que o caminho de importação esteja correto no seu projeto
 import 'package:algumacoisa/paciente/idade_paciente.dart';
-
-import '../config.dart';
 
 // --- CONFIGURAÇÃO DA API ---
 // É uma URL diferente (peso)

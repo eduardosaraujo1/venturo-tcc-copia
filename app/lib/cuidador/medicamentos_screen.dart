@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class MedicamentosScreen extends StatefulWidget {
   const MedicamentosScreen({super.key});
@@ -161,9 +159,8 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
       Colors.amber,
     ];
 
-    if (letra.isEmpty || letra == '?') {
+    if (letra.isEmpty || letra == '?')
       return const Color.fromARGB(255, 0, 0, 0);
-    }
     final index = letra.codeUnitAt(0) % colors.length;
     return colors[index];
   }
@@ -255,9 +252,16 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
             else if (pacientesFiltrados.isEmpty && searchQuery.isNotEmpty)
               Expanded(
                 child: Center(
-                  child: Text(
-                    'Nenhum paciente encontrado para "$searchQuery"',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.medication, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        'Nenhum paciente encontrado para "$searchQuery"',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -318,6 +322,7 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Cabeçalho do paciente
             Row(
               children: [
                 CircleAvatar(
@@ -337,22 +342,33 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Nome do paciente
                       Text(
                         paciente['nome'] ?? 'Nome não informado',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: Colors.black,
                         ),
                       ),
+                      SizedBox(height: 4),
+                      // Idade
                       if (paciente['idade'] != null)
                         Text(
                           '${paciente['idade']} anos',
-                          style: TextStyle(color: Colors.grey),
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 14,
+                          ),
                         ),
+                      // Comorbidade
                       if (paciente['comorbidade'] != null)
                         Text(
                           paciente['comorbidade'] ?? '',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
                         ),
                     ],
                   ),
@@ -368,6 +384,7 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
                   style: TextStyle(
                     color: Colors.grey,
                     fontStyle: FontStyle.italic,
+                    fontSize: 14,
                   ),
                 ),
               )
@@ -375,11 +392,17 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Título da seção de medicamentos
                   Text(
                     'Medicamentos:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                   SizedBox(height: 8),
+                  // Lista de medicamentos
                   ...medicamentos.map(
                     (medicamento) => _buildMedicamentoItem(medicamento),
                   ),
@@ -397,59 +420,63 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
     return Card(
       margin: EdgeInsets.only(bottom: 8),
       elevation: 1,
-      color: _getStatusColor(status).withOpacity(0.05),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
+            // Ícone do medicamento
             Icon(Icons.medication, color: _getStatusColor(status)),
             SizedBox(width: 12),
+            // Informações do medicamento
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Nome do medicamento
                   Text(
                     medicamento['medicamento_nome'] ??
                         'Medicamento não informado',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
                   ),
                   SizedBox(height: 4),
+                  // Dosagem
                   Text(
                     'Dosagem: ${medicamento['dosagem'] ?? 'Não informada'}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: const Color.fromARGB(255, 0, 0, 0),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   ),
+                  // Data e hora
                   Text(
                     'Data: ${_formatarDataHora(medicamento['data_hora'])}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: const Color.fromARGB(255, 0, 0, 0),
-                    ),
+                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                   ),
                 ],
               ),
             ),
+            // Status e botão editar
             Column(
               children: [
+                // Status
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _getStatusColor(status)),
                   ),
                   child: Text(
                     _formatarStatus(status),
                     style: TextStyle(
                       color: _getStatusColor(status),
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 SizedBox(height: 8),
+                // Botão editar
                 IconButton(
                   icon: Icon(Icons.edit, size: 18),
                   onPressed: () =>

@@ -1,8 +1,182 @@
+import 'package:algumacoisa/familiar/chat_familiar.dart';
+import '../config.dart';
 import 'package:flutter/material.dart';
-import 'chat_familiar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class MensagemsPaciente extends StatelessWidget {
-  const MensagemsPaciente({super.key});
+class ConversasPaciente extends StatelessWidget {
+  const ConversasPaciente({super.key});
+
+  // Função para carregar dados do familiar
+  Future<Map<String, dynamic>> _carregarFamiliar() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${Config.apiUrl}/api/familiar/perfil'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print('Erro API Familiar: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro ao carregar familiar: $e');
+    }
+    return {};
+  }
+
+  // Função para carregar dados do cuidador
+  Future<Map<String, dynamic>> _carregarCuidador() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${Config.apiUrl}/api/cuidador/perfil'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print('Erro API Cuidador: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro ao carregar cuidador: $e');
+    }
+    return {};
+  }
+
+  // Função para obter a inicial do nome
+  String _getInicial(String nome) {
+    if (nome.isEmpty || nome == 'Familiar' || nome == 'Cuidador') {
+      return '?';
+    }
+    // Remove "Sr." ou "Sra." se existirem e pega a primeira letra do primeiro nome
+    final nomeLimpo = nome.replaceAll(
+      RegExp(r'^Sr\.\s*|^Sra\.\s*', caseSensitive: false),
+      '',
+    );
+    return nomeLimpo.isNotEmpty ? nomeLimpo[0].toUpperCase() : '?';
+  }
+
+  // Função para gerar cor baseada no nome (para o CircleAvatar)
+  Color _getCorBaseadaNoNome(String nome) {
+    final cores = [
+      Color(0xFF6ABAD5), // Azul principal
+      Color(0xFF4CAF50), // Verde
+      Color(0xFF9C27B0), // Roxo
+      Color(0xFFFF9800), // Laranja
+      Color(0xFFF44336), // Vermelho
+      Color(0xFF2196F3), // Azul
+      Color(0xFF009688), // Teal
+    ];
+
+    if (nome.isEmpty) return cores[0];
+
+    // Gera um índice baseado no código ASCII do primeiro caractere
+    final codigo = nome.codeUnits.reduce((a, b) => a + b);
+    return cores[codigo % cores.length];
+  }
+
+  Widget _buildTab(IconData icon, String title, bool isSelected) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          Icon(icon, color: isSelected ? const Color(0xFF6ABAD5) : Colors.grey),
+          SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? const Color(0xFF6ABAD5) : Colors.grey,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatTile(
+    BuildContext context, {
+    required String name,
+    required String message,
+    required String inicial,
+    required Color corAvatar,
+    required int unreadCount,
+    String? lastMessageTime,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(chatName: name, imagePath: ''),
+          ),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+          ),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: corAvatar,
+              radius: 28,
+              child: Text(
+                inicial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    message,
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (lastMessageTime != null)
+                  Text(
+                    lastMessageTime,
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                SizedBox(height: 4),
+                if (unreadCount > 0)
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.red,
+                    child: Text(
+                      unreadCount.toString(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,117 +191,104 @@ class MensagemsPaciente extends StatelessWidget {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildTab(Icons.message_outlined, 'conversas', true),
-                  _buildTab(Icons.call_outlined, 'chamadas', false),
-                  _buildTab(Icons.person_outline, 'contatos', false),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            _buildChatTile(
-              context,
-              name: 'Bruno',
-              message: 'Está melhor hoje pai? ',
-              imagePath: 'assets/pessoa1.jpg',
-              unreadCount: 4,
-            ),
-            _buildChatTile(
-              context,
-              name: 'Cuidador',
-              message: 'Vamos passear hoje',
-              imagePath: 'assets/carolina.png',
-              unreadCount: 4,
-            ),
-            
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTab(IconData icon, String title, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? const Color.fromARGB(255, 106, 186, 213): Colors.grey,
-          ),
-          SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              color: isSelected ? const Color.fromARGB(255, 106, 186, 213) : Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatTile(BuildContext context, {
-    required String name,
-    required String message,
-    required String imagePath,
-    required int unreadCount,
-  }) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              chatName: name,
-              imagePath: imagePath,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage: AssetImage(imagePath),
-              radius: 28,
-            ),
-            SizedBox(width: 16),
-            Expanded(
+      body: FutureBuilder(
+        future: Future.wait([_carregarFamiliar(), _carregarCuidador()]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Text(message, style: TextStyle(color: Colors.grey)),
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Carregando conversas...'),
                 ],
               ),
-            ),
-            if (unreadCount > 0)
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: Colors.red,
-                child: Text(
-                  unreadCount.toString(),
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text(
+                    'Erro ao carregar dados',
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Verifique se as APIs estão rodando',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
               ),
-          ],
-        ),
+            );
+          }
+
+          final familiarData = snapshot.data?[0] ?? {};
+          final cuidadorData = snapshot.data?[1] ?? {};
+
+          // DEBUG: Mostrar dados recebidos
+          print('Dados Familiar: $familiarData');
+          print('Dados Cuidador: $cuidadorData');
+
+          // Extrair nomes das APIs
+          final familiarNome =
+              familiarData['nome'] ?? familiarData['name'] ?? 'Familiar';
+          final cuidadorNome =
+              cuidadorData['nome'] ?? cuidadorData['name'] ?? 'Cuidador';
+
+          // Obter iniciais e cores para cada pessoa
+          final familiarInicial = _getInicial(familiarNome);
+          final cuidadorInicial = _getInicial(cuidadorNome);
+
+          final familiarCor = _getCorBaseadaNoNome(familiarNome);
+          final cuidadorCor = _getCorBaseadaNoNome(cuidadorNome);
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildTab(Icons.message_outlined, 'conversas', true),
+                      _buildTab(Icons.call_outlined, 'chamadas', false),
+                      _buildTab(Icons.person_outline, 'contatos', false),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+
+                // Conversa com o Familiar
+                _buildChatTile(
+                  context,
+                  name: '$familiarNome (Familiar)',
+                  message: 'Você está bem?',
+                  inicial: familiarInicial,
+                  corAvatar: familiarCor,
+                  unreadCount: 2,
+                  lastMessageTime: '10:30',
+                ),
+
+                // Conversa com o Cuidador
+                _buildChatTile(
+                  context,
+                  name: '$cuidadorNome (Cuidador)',
+                  message: 'Qualquer coisa acione a emergência',
+                  inicial: cuidadorInicial,
+                  corAvatar: cuidadorCor,
+                  unreadCount: 0,
+                  lastMessageTime: '09:15',
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TarefasScreen extends StatefulWidget {
   const TarefasScreen({super.key});
@@ -160,7 +158,8 @@ class _TarefasScreenState extends State<TarefasScreen> {
       Colors.amber,
     ];
 
-    if (letra.isEmpty || letra == '?') return Colors.grey;
+    if (letra.isEmpty || letra == '?')
+      return const Color.fromARGB(255, 0, 0, 0);
     final index = letra.codeUnitAt(0) % colors.length;
     return colors[index];
   }
@@ -300,6 +299,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Cabeçalho do paciente
                               Row(
                                 children: [
                                   CircleAvatar(
@@ -320,34 +320,42 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
+                                        // Nome do paciente
                                         Text(
                                           paciente['nome'] ??
                                               'Nome não informado',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
+                                            color: Colors.black,
                                           ),
                                         ),
+                                        SizedBox(height: 4),
+                                        // Idade
                                         if (paciente['idade'] != null)
                                           Text(
                                             '${paciente['idade']} anos',
                                             style: TextStyle(
-                                              color: Colors.grey,
+                                              color: Colors.grey[700],
+                                              fontSize: 14,
                                             ),
                                           ),
+                                        // Comorbidade
                                         if (paciente['comorbidade'] != null)
                                           Text(
                                             paciente['comorbidade'] ?? '',
                                             style: TextStyle(
-                                              color: Colors.grey,
+                                              color: Colors.grey[600],
                                               fontSize: 12,
                                             ),
                                           ),
+                                        // Contador de tarefas
                                         Text(
                                           '${tarefas.length} tarefa${tarefas.length > 1 ? 's' : ''}',
                                           style: TextStyle(
-                                            color: Colors.grey,
+                                            color: Colors.grey[600],
                                             fontSize: 12,
+                                            fontStyle: FontStyle.italic,
                                           ),
                                         ),
                                       ],
@@ -356,45 +364,50 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                 ],
                               ),
                               SizedBox(height: 12),
+                              // Lista de tarefas
                               ...tarefas.map<Widget>((tarefa) {
                                 final status = tarefa['status'] ?? 'pendente';
                                 return Card(
                                   margin: EdgeInsets.only(bottom: 8),
                                   elevation: 1,
-                                  color: _getStatusColor(
-                                    status,
-                                  ).withOpacity(0.05),
                                   child: Padding(
                                     padding: const EdgeInsets.all(12.0),
                                     child: Row(
                                       children: [
+                                        // Ícone da tarefa
                                         Icon(
                                           Icons.task,
                                           color: _getStatusColor(status),
                                         ),
                                         SizedBox(width: 12),
+                                        // Informações da tarefa
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
+                                              // Motivação
                                               if (tarefa['motivacao'] != null)
                                                 Text(
                                                   tarefa['motivacao'],
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: Colors.black,
                                                   ),
                                                 ),
+                                              // Descrição
                                               if (tarefa['descricao'] != null)
                                                 SizedBox(height: 4),
                                               if (tarefa['descricao'] != null)
                                                 Text(
                                                   tarefa['descricao'],
                                                   style: TextStyle(
-                                                    color: Colors.grey[600],
                                                     fontSize: 12,
+                                                    color: Colors.grey[700],
                                                   ),
                                                 ),
+                                              // Data
                                               if (tarefa['data_tarefa'] != null)
                                                 SizedBox(height: 4),
                                               if (tarefa['data_tarefa'] != null)
@@ -403,7 +416,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                                     Icon(
                                                       Icons.calendar_today,
                                                       size: 14,
-                                                      color: Colors.grey,
+                                                      color: Colors.grey[600],
                                                     ),
                                                     SizedBox(width: 4),
                                                     Text(
@@ -412,7 +425,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                                       ),
                                                       style: TextStyle(
                                                         fontSize: 11,
-                                                        color: Colors.grey,
+                                                        color: Colors.grey[600],
                                                       ),
                                                     ),
                                                   ],
@@ -420,8 +433,10 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                             ],
                                           ),
                                         ),
+                                        // Status e botão editar
                                         Column(
                                           children: [
+                                            // Status
                                             Container(
                                               padding: EdgeInsets.symmetric(
                                                 horizontal: 8,
@@ -451,6 +466,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                               ),
                                             ),
                                             SizedBox(height: 4),
+                                            // Botão editar
                                             IconButton(
                                               icon: Icon(Icons.edit, size: 16),
                                               onPressed: () =>

@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'home_cuidador_screen.dart';
 
 // Models
@@ -138,13 +136,6 @@ class _PatientTaskSelectionScreenState
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navegação para adicionar novo paciente
-        },
-        backgroundColor: const Color.fromARGB(255, 106, 186, 213),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

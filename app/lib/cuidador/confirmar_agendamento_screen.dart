@@ -7,6 +7,7 @@ class ConfirmarAgendamentoScreen extends StatelessWidget {
   final String hora;
   final String especialidade;
   final String medicoNome;
+  final String endereco; // NOVO PARÂMETRO
 
   const ConfirmarAgendamentoScreen({
     super.key,
@@ -15,6 +16,7 @@ class ConfirmarAgendamentoScreen extends StatelessWidget {
     required this.hora,
     required this.especialidade,
     required this.medicoNome,
+    required this.endereco, // NOVO PARÂMETRO
   });
 
   @override
@@ -75,6 +77,11 @@ class ConfirmarAgendamentoScreen extends StatelessWidget {
               'Médico: $medicoNome',
               style: TextStyle(fontSize: 16),
             ),
+            SizedBox(height: 8), // ESPAÇAMENTO ADICIONADO
+            Text( // WIDGET ADICIONADO PARA EXIBIR O ENDEREÇO
+              'Endereço: $endereco',
+              style: TextStyle(fontSize: 16),
+            ),
             SizedBox(height: 16),
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -117,8 +124,10 @@ class ConfirmarAgendamentoScreen extends StatelessWidget {
                         paciente: paciente,
                         data: data,
                         hora: hora,
-                      especialidade: especialidade,
-                      medicoNome: medicoNome,
+                        especialidade: especialidade,
+                        medicoNome: medicoNome,
+                        endereco: endereco,
+                        // ADICIONE TAMBÉM O ENDEREÇO AQUI SE PRECISAR NA PRÓXIMA TELA
                       ),
                     ),
                   );

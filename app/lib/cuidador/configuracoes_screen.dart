@@ -1,7 +1,7 @@
-import '../config.dart';
 import 'package:algumacoisa/cuidador/trocadesenha.dart';
+import '../config.dart';
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'notificacoes_screen.dart';
 
@@ -120,7 +120,7 @@ class ConfiguracoesScreen extends StatelessWidget {
   Future<Map<String, dynamic>> deletarContaAPI() async {
     try {
       // Substitua pela URL do seu servidor
-      const String baseUrl = Config.apiUrl; // ou seu IP
+      const String baseUrl = '${Config.apiUrl}'; // ou seu IP
 
       // Obter o userId real
       final userId = await _obterUserId();

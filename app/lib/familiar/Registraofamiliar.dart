@@ -1,10 +1,8 @@
-import 'dart:convert';
-
-import 'package:algumacoisa/cuidador/login_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
+import 'package:algumacoisa/cuidador/home_cuidador_screen.dart';
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // --- CONFIGURAÇÃO DA API ---
 const String familiarCadastroApiUrl = '${Config.apiUrl}/api/familiar/cadastro';
@@ -13,7 +11,7 @@ class Registraofamiliar extends StatefulWidget {
   const Registraofamiliar({super.key});
 
   @override
-  _RegistraofamiliarState createState() => _RegistraofamiliarState(); // Corrigido o nome do State
+  _RegistraofamiliarState createState() => _RegistraofamiliarState();
 }
 
 class _RegistraofamiliarState extends State<Registraofamiliar> {
@@ -29,13 +27,17 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
+  // Variáveis para controle de visibilidade da senha
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
   // Variáveis para Dropdown e Radio Button
   String? _selectedGender;
   int? _selectedDay;
   String? _selectedMonth;
   int? _selectedYear;
 
-  // Mapa de meses para números (para facilitar a formatação da data)
+  // Mapa de meses para números
   final Map<String, String> _monthMap = {
     "Janeiro": "01",
     "Fevereiro": "02",
@@ -68,7 +70,6 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
       return;
     }
 
-    // 1. Validação de Senha e Data
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(
         context,
@@ -90,7 +91,6 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
 
     setState(() => _isLoading = true);
 
-    // Formata a data de nascimento para o formato YYYY-MM-DD
     final monthNumber = _monthMap[_selectedMonth]!;
     final dayString = _selectedDay!.toString().padLeft(2, '0');
     final dataNascimento = '$_selectedYear-$monthNumber-$dayString';
@@ -102,8 +102,7 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
       'endereco': _addressController.text.trim(),
       'data_nascimento': dataNascimento,
       'genero': _selectedGender,
-      'senha':
-          _passwordController.text, // A senha será criptografada no backend
+      'senha': _passwordController.text,
     };
 
     try {
@@ -120,10 +119,9 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cadastro realizado com sucesso!')),
           );
-          // Sucesso: Navega para a tela de Login do Familiar
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => LoginUnificadoScreen()),
+            MaterialPageRoute(builder: (context) => HomeCuidadorScreen()),
           );
         }
       } else {
@@ -150,20 +148,19 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
     }
   }
 
-  // Método auxiliar para campos de texto (Agora usa TextFormField com validation)
   Widget _buildTextField(
     String hint,
     TextEditingController controller,
     String? Function(String?) validator, {
     TextInputType type = TextInputType.text,
     bool isPassword = false,
+    VoidCallback? onToggleVisibility,
+    bool? obscureText,
   }) {
-    // Estilo de borda
     final OutlineInputBorder borderStyle = OutlineInputBorder(
       borderRadius: BorderRadius.circular(10.0),
       borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
     );
-    // Estilo de foco
     final OutlineInputBorder focusStyle = OutlineInputBorder(
       borderRadius: BorderRadius.circular(10.0),
       borderSide: const BorderSide(
@@ -174,7 +171,7 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
 
     return TextFormField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: obscureText ?? (isPassword ? _obscurePassword : false),
       keyboardType: type,
       validator: validator,
       decoration: InputDecoration(
@@ -187,15 +184,80 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
         enabledBorder: borderStyle,
         focusedBorder: focusStyle,
         filled: true,
-        fillColor: Colors.white,
         suffixIcon: isPassword
-            ? const Icon(Icons.visibility_off, color: Colors.black54)
+            ? IconButton(
+                icon: Icon(
+                  obscureText ?? _obscurePassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                  color: Colors.black54,
+                ),
+                onPressed: onToggleVisibility,
+              )
             : null,
       ),
     );
   }
 
-  // Método auxiliar para dropdowns
+  // Método específico para campo de senha
+  Widget _buildPasswordField(
+    String hint,
+    TextEditingController controller,
+    String? Function(String?) validator, {
+    bool isConfirmPassword = false,
+  }) {
+    final OutlineInputBorder borderStyle = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10.0),
+      borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
+    );
+    final OutlineInputBorder focusStyle = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10.0),
+      borderSide: const BorderSide(
+        color: Color.fromARGB(255, 106, 186, 213),
+        width: 2,
+      ),
+    );
+
+    return TextFormField(
+      controller: controller,
+      obscureText: isConfirmPassword
+          ? _obscureConfirmPassword
+          : _obscurePassword,
+      keyboardType: TextInputType.visiblePassword,
+      validator: validator,
+      decoration: InputDecoration(
+        hintText: hint,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 16.0,
+          horizontal: 16.0,
+        ),
+        border: borderStyle,
+        enabledBorder: borderStyle,
+        focusedBorder: focusStyle,
+        filled: true,
+        suffixIcon: IconButton(
+          icon: Icon(
+            isConfirmPassword
+                ? (_obscureConfirmPassword
+                      ? Icons.visibility_off
+                      : Icons.visibility)
+                : (_obscurePassword ? Icons.visibility_off : Icons.visibility),
+            color: Colors.black54,
+          ),
+          onPressed: () {
+            setState(() {
+              if (isConfirmPassword) {
+                _obscureConfirmPassword = !_obscureConfirmPassword;
+              } else {
+                _obscurePassword = !_obscurePassword;
+              }
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   InputDecoration _dropDownDecoration(String label) {
     return InputDecoration(
       labelText: label,
@@ -219,26 +281,21 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
         ),
       ),
       filled: true,
-      fillColor: Colors.white,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -246,12 +303,13 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
             children: <Widget>[
               const SizedBox(height: 20),
               const Text(
-                'Cadastrar-se',
+                'Cadastrar Familiar',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color.fromARGB(255, 106, 186, 213),
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
 
@@ -293,59 +351,119 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      decoration: _dropDownDecoration("Dia"),
-                      initialValue: _selectedDay,
-                      items: List.generate(31, (i) => i + 1)
-                          .map(
-                            (day) => DropdownMenuItem(
-                              value: day,
-                              child: Text(day.toString()),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedDay = value),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      decoration: _dropDownDecoration("Mês"),
-                      initialValue: _selectedMonth,
-                      items: _monthMap.keys
-                          .map(
-                            (month) => DropdownMenuItem(
-                              value: month,
-                              child: Text(month),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedMonth = value),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      decoration: _dropDownDecoration("Ano"),
-                      initialValue: _selectedYear,
-                      items: List.generate(100, (i) => DateTime.now().year - i)
-                          .map(
-                            (year) => DropdownMenuItem(
-                              value: year,
-                              child: Text(year.toString()),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedYear = value),
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 400) {
+                    return Column(
+                      children: [
+                        DropdownButtonFormField<int>(
+                          decoration: _dropDownDecoration("Dia"),
+                          initialValue: _selectedDay,
+                          items: List.generate(31, (i) => i + 1)
+                              .map(
+                                (day) => DropdownMenuItem(
+                                  value: day,
+                                  child: Text(day.toString()),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedDay = value),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          decoration: _dropDownDecoration("Mês"),
+                          initialValue: _selectedMonth,
+                          items: _monthMap.keys
+                              .map(
+                                (month) => DropdownMenuItem(
+                                  value: month,
+                                  child: Text(month),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedMonth = value),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<int>(
+                          decoration: _dropDownDecoration("Ano"),
+                          initialValue: _selectedYear,
+                          items:
+                              List.generate(100, (i) => DateTime.now().year - i)
+                                  .map(
+                                    (year) => DropdownMenuItem(
+                                      value: year,
+                                      child: Text(year.toString()),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedYear = value),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            decoration: _dropDownDecoration("Dia"),
+                            initialValue: _selectedDay,
+                            items: List.generate(31, (i) => i + 1)
+                                .map(
+                                  (day) => DropdownMenuItem(
+                                    value: day,
+                                    child: Text(day.toString()),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) =>
+                                setState(() => _selectedDay = value),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            decoration: _dropDownDecoration("Mês"),
+                            initialValue: _selectedMonth,
+                            items: _monthMap.keys
+                                .map(
+                                  (month) => DropdownMenuItem(
+                                    value: month,
+                                    child: Text(month),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) =>
+                                setState(() => _selectedMonth = value),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            decoration: _dropDownDecoration("Ano"),
+                            initialValue: _selectedYear,
+                            items:
+                                List.generate(
+                                      100,
+                                      (i) => DateTime.now().year - i,
+                                    )
+                                    .map(
+                                      (year) => DropdownMenuItem(
+                                        value: year,
+                                        child: Text(year.toString()),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (value) =>
+                                setState(() => _selectedYear = value),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 20),
 
@@ -354,32 +472,53 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
                 "Gênero *",
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
-              Row(
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
                 children: [
-                  Radio<String>(
-                    value: "F",
-                    groupValue: _selectedGender,
-                    onChanged: (value) =>
-                        setState(() => _selectedGender = value),
-                    activeColor: const Color.fromARGB(255, 106, 186, 213),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<String>(
+                        value: "F",
+                        groupValue: _selectedGender,
+                        onChanged: (value) =>
+                            setState(() => _selectedGender = value),
+                        activeColor: const Color.fromARGB(255, 106, 186, 213),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const Text("Feminino"),
+                    ],
                   ),
-                  const Text("Feminino"),
-                  Radio<String>(
-                    value: "M",
-                    groupValue: _selectedGender,
-                    onChanged: (value) =>
-                        setState(() => _selectedGender = value),
-                    activeColor: const Color.fromARGB(255, 106, 186, 213),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<String>(
+                        value: "M",
+                        groupValue: _selectedGender,
+                        onChanged: (value) =>
+                            setState(() => _selectedGender = value),
+                        activeColor: const Color.fromARGB(255, 106, 186, 213),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const Text("Masculino"),
+                    ],
                   ),
-                  const Text("Masculino"),
-                  Radio<String>(
-                    value: "O",
-                    groupValue: _selectedGender,
-                    onChanged: (value) =>
-                        setState(() => _selectedGender = value),
-                    activeColor: const Color.fromARGB(255, 106, 186, 213),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<String>(
+                        value: "O",
+                        groupValue: _selectedGender,
+                        onChanged: (value) =>
+                            setState(() => _selectedGender = value),
+                        activeColor: const Color.fromARGB(255, 106, 186, 213),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const Text("Outro"),
+                    ],
                   ),
-                  const Text("Outro"),
                 ],
               ),
 
@@ -420,13 +559,13 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 8),
-              _buildTextField(
+              _buildPasswordField(
                 "Digite sua senha",
                 _passwordController,
                 (value) => value!.length < 6
                     ? 'A senha deve ter pelo menos 6 caracteres.'
                     : null,
-                isPassword: true,
+                isConfirmPassword: false,
               ),
 
               const SizedBox(height: 20),
@@ -437,11 +576,11 @@ class _RegistraofamiliarState extends State<Registraofamiliar> {
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 8),
-              _buildTextField(
+              _buildPasswordField(
                 "Repita sua senha",
                 _confirmPasswordController,
                 (value) => value!.isEmpty ? 'Confirme sua senha.' : null,
-                isPassword: true,
+                isConfirmPassword: true,
               ),
 
               const SizedBox(height: 40),

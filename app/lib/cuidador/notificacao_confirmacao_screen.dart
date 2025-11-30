@@ -7,6 +7,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
   final String hora;
   final String especialidade;
   final String medicoNome;
+  final String endereco; // NOVO PARÂMETRO
 
   const NotificacaoConfirmacaoScreen({
     super.key,
@@ -15,6 +16,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
     required this.hora,
     required this.especialidade,
     required this.medicoNome,
+    required this.endereco, // NOVO PARÂMETRO
   });
 
   // Método para formatar a data em um formato mais amigável
@@ -26,36 +28,21 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
           final dia = int.parse(parts[0]);
           final mes = int.parse(parts[1]);
           final ano = int.parse(parts[2]);
-
+          
           final meses = [
-            'janeiro',
-            'fevereiro',
-            'março',
-            'abril',
-            'maio',
-            'junho',
-            'julho',
-            'agosto',
-            'setembro',
-            'outubro',
-            'novembro',
-            'dezembro',
+            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
           ];
-
+          
           final diasSemana = [
-            'Domingo',
-            'Segunda-feira',
-            'Terça-feira',
-            'Quarta-feira',
-            'Quinta-feira',
-            'Sexta-feira',
-            'Sábado',
+            'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira',
+            'Quinta-feira', 'Sexta-feira', 'Sábado'
           ];
-
+          
           final dateTime = DateTime(ano, mes, dia);
           final diaSemana = diasSemana[dateTime.weekday - 1];
           final mesExtenso = meses[mes - 1];
-
+          
           return '$diaSemana, $dia de $mesExtenso de $ano';
         }
       }
@@ -71,7 +58,6 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
     final corPrincipal = const Color(0xFF6ABAD5);
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
-    // ignore: unused_local_variable
     final isLargeScreen = screenWidth > 600;
 
     return Scaffold(
@@ -79,7 +65,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
         title: Text(
           'Notificação de confirmação',
           style: TextStyle(
-            color: corPrincipal,
+            color: corPrincipal, 
             fontSize: isSmallScreen ? 16 : 18,
           ),
         ),
@@ -91,15 +77,14 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: isSmallScreen ? 16.0 : 24.0,
-            vertical: 16.0,
+            horizontal: isSmallScreen ? 16.0 : 24.0, 
+            vertical: 16.0
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight:
-                  MediaQuery.of(context).size.height -
-                  MediaQuery.of(context).padding.vertical -
-                  kToolbarHeight,
+              minHeight: MediaQuery.of(context).size.height - 
+                       MediaQuery.of(context).padding.vertical - 
+                       kToolbarHeight,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -114,13 +99,13 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.check,
-                        size: isSmallScreen ? 50 : 60,
-                        color: corPrincipal,
+                        Icons.check, 
+                        size: isSmallScreen ? 50 : 60, 
+                        color: corPrincipal
                       ),
                     ),
                     SizedBox(height: isSmallScreen ? 16 : 24),
-
+                    
                     // Título principal
                     Text(
                       'Consulta agendada com sucesso!',
@@ -134,7 +119,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                     SizedBox(height: isSmallScreen ? 6 : 8),
                     Padding(
                       padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 8.0 : 0.0,
+                        horizontal: isSmallScreen ? 8.0 : 0.0
                       ),
                       child: Text(
                         'Você receberá uma notificação próximo à data da consulta',
@@ -146,7 +131,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: isSmallScreen ? 24 : 32),
-
+                    
                     // Cards de informações
                     _buildInfoCard(
                       context: context,
@@ -158,7 +143,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                       corPrincipal: corPrincipal,
                     ),
                     SizedBox(height: 12),
-
+                    
                     _buildInfoCard(
                       context: context,
                       icon: Icons.medical_services,
@@ -169,7 +154,19 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                       corPrincipal: corPrincipal,
                     ),
                     SizedBox(height: 12),
-
+                    
+                    // NOVO CARD PARA O ENDEREÇO
+                    _buildInfoCard(
+                      context: context,
+                      icon: Icons.location_on,
+                      title: 'Endereço',
+                      mainText: endereco,
+                      subtitle: null,
+                      isSmallScreen: isSmallScreen,
+                      corPrincipal: corPrincipal,
+                    ),
+                    SizedBox(height: 12),
+                    
                     _buildInfoCard(
                       context: context,
                       icon: Icons.calendar_today,
@@ -179,9 +176,9 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                       isSmallScreen: isSmallScreen,
                       corPrincipal: corPrincipal,
                     ),
-
+                    
                     SizedBox(height: isSmallScreen ? 16 : 24),
-
+                    
                     // Resumo da Consulta
                     Container(
                       width: double.infinity,
@@ -189,9 +186,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: corPrincipal.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: corPrincipal.withOpacity(0.2),
-                        ),
+                        border: Border.all(color: corPrincipal.withOpacity(0.2)),
                       ),
                       child: Column(
                         children: [
@@ -222,6 +217,13 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                             isSmallScreen: isSmallScreen,
                           ),
                           SizedBox(height: 4),
+                          // NOVA LINHA PARA O ENDEREÇO
+                          _buildSummaryRow(
+                            'Endereço:',
+                            endereco,
+                            isSmallScreen: isSmallScreen,
+                          ),
+                          SizedBox(height: 4),
                           _buildSummaryRow(
                             'Data:',
                             dataFormatada,
@@ -238,7 +240,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-
+                
                 // Botões
                 Padding(
                   padding: EdgeInsets.only(
@@ -253,9 +255,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => HomeCuidadorScreen(),
-                              ),
+                              MaterialPageRoute(builder: (context) => HomeCuidadorScreen()),
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -315,7 +315,9 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: Padding(
         padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         child: Row(
@@ -324,9 +326,9 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
               radius: isSmallScreen ? 20 : 24,
               backgroundColor: corPrincipal.withOpacity(0.1),
               child: Icon(
-                icon,
-                size: isSmallScreen ? 18 : 22,
-                color: corPrincipal,
+                icon, 
+                size: isSmallScreen ? 18 : 22, 
+                color: corPrincipal
               ),
             ),
             SizedBox(width: isSmallScreen ? 12 : 16),
@@ -373,11 +375,7 @@ class NotificacaoConfirmacaoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryRow(
-    String label,
-    String value, {
-    required bool isSmallScreen,
-  }) {
+  Widget _buildSummaryRow(String label, String value, {required bool isSmallScreen}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

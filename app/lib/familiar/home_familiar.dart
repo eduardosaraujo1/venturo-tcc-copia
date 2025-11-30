@@ -1,5 +1,5 @@
-import 'dart:convert';
-
+import 'package:flutter/material.dart';
+import '../config.dart';
 import 'package:algumacoisa/familiar/agenda_familiar.dart';
 import 'package:algumacoisa/familiar/consultas_familiar.dart';
 import 'package:algumacoisa/familiar/conversas_familiar.dart';
@@ -9,10 +9,8 @@ import 'package:algumacoisa/familiar/meu_perfil_screen.dart';
 import 'package:algumacoisa/familiar/notificacoes_screen.dart';
 import 'package:algumacoisa/familiar/sentimentos_familiar.dart';
 import 'package:algumacoisa/familiar/tarefas_familiar.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
-import '../config.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HomeFamiliar extends StatefulWidget {
   const HomeFamiliar({super.key});
@@ -23,13 +21,17 @@ class HomeFamiliar extends StatefulWidget {
 
 class _HomeFamiliarState extends State<HomeFamiliar> {
   Map<String, dynamic> _perfilData = {};
+  Map<String, dynamic> _pacienteData = {};
   bool _isLoading = true;
+  bool _isLoadingPaciente = true;
   String _errorMessage = '';
+  String _errorMessagePaciente = '';
 
   @override
   void initState() {
     super.initState();
     _carregarPerfil();
+    _carregarPaciente();
   }
 
   Future<void> _carregarPerfil() async {
@@ -54,6 +56,32 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
         _errorMessage =
             'Erro de conexão: $error\n\nVerifique:\n1. Se o servidor está rodando\n2. Se a URL está correta\n3. Sua conexão com a internet';
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _carregarPaciente() async {
+    try {
+      final response = await http
+          .get(Uri.parse('${Config.apiUrl}/api/familiar/paciente'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _pacienteData = json.decode(response.body);
+          _isLoadingPaciente = false;
+        });
+      } else {
+        setState(() {
+          _errorMessagePaciente =
+              'Erro ao carregar dados do paciente: ${response.statusCode}';
+          _isLoadingPaciente = false;
+        });
+      }
+    } catch (error) {
+      setState(() {
+        _errorMessagePaciente = 'Erro de conexão ao carregar paciente: $error';
+        _isLoadingPaciente = false;
       });
     }
   }
@@ -96,12 +124,19 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
     final inicial = _getInicial(nomeUsuario);
     final avatarColor = _getAvatarColor(inicial);
 
+    // Dados do paciente
+    final nomePaciente = _pacienteData['nome'] ?? 'Carregando...';
+    final parentesco = _pacienteData['parentesco'] ?? 'parente';
+    final idade = _pacienteData['idade']?.toString() ?? '';
+    final tipoSanguineo = _pacienteData['tipo_sanguineo'] ?? '';
+    final comorbidade = _pacienteData['comorbidade'] ?? '';
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 100,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: false, // ← ADICIONE ESTA LINHA
+        automaticallyImplyLeading: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -122,7 +157,6 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
                   onTap: () => _navegarParaPerfil(context),
                   child: Row(
                     children: [
-                      // Avatar com letra inicial
                       if (_isLoading)
                         CircleAvatar(
                           radius: 24,
@@ -152,7 +186,6 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
                           ),
                         ),
                       const SizedBox(width: 12),
-                      // Nome com loading
                       if (_isLoading)
                         const Text(
                           'Carregando...',
@@ -206,142 +239,188 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
+            _buildPacienteInfoBox(
+              nomePaciente,
+              parentesco,
+              idade,
+              tipoSanguineo,
+              comorbidade,
+            ),
+            const SizedBox(height: 16),
+
             _buildInfoCard(
               icon: Icons.access_time,
               title: 'Consultas Hoje',
-              subtitle: '2 Agendadas',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ConsultasFamiliar()),
-                );
-              },
+              subtitle: 'clique para vizualizar',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ConsultasFamiliar()),
+              ),
             ),
             _buildInfoCard(
               icon: Icons.medical_services_outlined,
               title: 'Medicamentos a administrar',
-              subtitle: '2 Horários',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MedicamentosFamiliar(),
-                  ),
-                );
-              },
+              subtitle: 'clique para vizualizar',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MedicamentosFamiliar()),
+              ),
             ),
             _buildInfoCard(
               icon: Icons.warning_amber_outlined,
               title: 'Emergências recentes',
               subtitle: '1 Alerta hoje',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EmergenciasScreen()),
-                );
-              },
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EmergenciasScreen()),
+              ),
             ),
             _buildInfoCard(
               icon: Icons.task_alt,
               title: 'Tarefas Pendentes',
-              subtitle: '2 Tarefas',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => TarefasFamiliar()),
-                );
-              },
+              subtitle: 'clique para vizualizar',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TarefasFamiliar()),
+              ),
             ),
             _buildInfoCard(
               icon: Icons.sick_outlined,
               title: 'Sentimentos Paciente',
-              subtitle: '2 sintomas hoje',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SentimentosFamiliar(),
-                  ),
-                );
-              },
+              subtitle: 'clique para vizualizar',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SentimentosFamiliar()),
+              ),
             ),
 
-            // Botão para recarregar em caso de erro
-            if (_errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          _errorMessage,
-                          style: const TextStyle(color: Colors.red),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: _carregarPerfil,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              106,
-                              186,
-                              213,
-                            ),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Tentar Novamente'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            if (_errorMessage.isNotEmpty || _errorMessagePaciente.isNotEmpty)
+              _buildErrorCard(),
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(
-                Icons.home,
-                color: Color.fromARGB(255, 106, 186, 213),
-              ),
-              onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.message_outlined,
-                color: Color.fromARGB(255, 106, 186, 213),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ConversasFamiliar()),
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.calendar_today_outlined,
-                color: Color.fromARGB(255, 106, 186, 213),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AgendaFamiliar()),
-                );
-              },
-            ),
-          ],
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  Widget _buildPacienteInfoBox(
+    String nomePaciente,
+    String parentesco,
+    String idade,
+    String tipoSanguineo,
+    String comorbidade,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 106, 186, 213).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color.fromARGB(255, 106, 186, 213).withOpacity(0.3),
+          width: 1.5,
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.family_restroom,
+                color: const Color.fromARGB(255, 106, 186, 213),
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Esta é a Agenda do(a) seu parente:',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 106, 186, 213),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_isLoadingPaciente)
+            const Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color.fromARGB(255, 106, 186, 213),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Carregando informações do paciente...',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ],
+            )
+          else if (_errorMessagePaciente.isNotEmpty)
+            Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.orange, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Erro ao carregar dados do paciente',
+                  style: TextStyle(color: Colors.orange, fontSize: 14),
+                ),
+              ],
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  nomePaciente,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                if (idade.isNotEmpty ||
+                    tipoSanguineo.isNotEmpty ||
+                    comorbidade.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  if (idade.isNotEmpty) _buildInfoRow('Idade:', '$idade anos'),
+                  if (tipoSanguineo.isNotEmpty)
+                    _buildInfoRow('Tipo Sanguíneo:', tipoSanguineo),
+                  if (comorbidade.isNotEmpty)
+                    _buildInfoRow('Comorbidades:', comorbidade),
+                ],
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Text(
+            '$label ',
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.black87, fontSize: 14),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -389,6 +468,108 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildErrorCard() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              if (_errorMessage.isNotEmpty)
+                Text(
+                  _errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              if (_errorMessagePaciente.isNotEmpty) ...[
+                if (_errorMessage.isNotEmpty) const SizedBox(height: 10),
+                Text(
+                  _errorMessagePaciente,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (_errorMessage.isNotEmpty)
+                    ElevatedButton(
+                      onPressed: _carregarPerfil,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          106,
+                          186,
+                          213,
+                        ),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Recarregar Perfil'),
+                    ),
+                  if (_errorMessagePaciente.isNotEmpty)
+                    ElevatedButton(
+                      onPressed: _carregarPaciente,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          106,
+                          186,
+                          213,
+                        ),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Recarregar Paciente'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return BottomAppBar(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          IconButton(
+            icon: const Icon(
+              Icons.home,
+              color: Color.fromARGB(255, 106, 186, 213),
+            ),
+            onPressed: () =>
+                Navigator.popUntil(context, (route) => route.isFirst),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.message_outlined,
+              color: Color.fromARGB(255, 106, 186, 213),
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ConversasFamiliar()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.calendar_today_outlined,
+              color: Color.fromARGB(255, 106, 186, 213),
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AgendaFamiliar()),
+            ),
+          ),
+        ],
       ),
     );
   }

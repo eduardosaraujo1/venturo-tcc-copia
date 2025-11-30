@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:algumacoisa/cuidador/home_cuidador_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
+import 'package:http/http.dart' as http;
 
 import '../config.dart';
 
@@ -21,7 +21,6 @@ class _TrocadesenhaState extends State<Trocadesenha> {
 
   // Cores do tema
   static const Color corPrincipal = Color(0xFF6ABAD5);
-  static const Color corFundo = Colors.white;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
@@ -135,9 +134,7 @@ class _TrocadesenhaState extends State<Trocadesenha> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: corFundo,
       appBar: AppBar(
-        backgroundColor: corFundo,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),

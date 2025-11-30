@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class NotificacoesFamilar extends StatefulWidget {
-  const NotificacoesFamilar({super.key});
+class NotificacoesScreen extends StatefulWidget {
+  const NotificacoesScreen({super.key});
 
   @override
   _NotificacoesScreenState createState() => _NotificacoesScreenState();
 }
 
-class _NotificacoesScreenState extends State<NotificacoesFamilar> {
+class _NotificacoesScreenState extends State<NotificacoesScreen> {
   bool _notificacoesHabilitadas = true;
   bool _somHabilitado = true;
   bool _vibrarHabilitado = true;
@@ -59,7 +59,7 @@ class _NotificacoesScreenState extends State<NotificacoesFamilar> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeThumbColor:  const Color.fromARGB(255, 106, 186, 213),
+          activeThumbColor: const Color(0xFF6ABAD5),
         ),
       ],
     );

@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:algumacoisa/cuidador/confirmar_agendamento_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class Patient {
   final String id;
@@ -25,11 +23,13 @@ class SelecionarPacienteConsulta extends StatefulWidget {
   final String medicoNome;
   final DateTime data;
   final String hora;
+  final String endereco;
 
   const SelecionarPacienteConsulta({
     super.key,
     required this.especialidade,
     required this.medicoNome,
+    required this.endereco, // NOVO PARÂMETRO
     required this.data,
     required this.hora,
   });
@@ -79,6 +79,7 @@ class _SelecionarPacienteConsultaState
               id: item['id']?.toString() ?? '0',
               nome: item['nome']?.toString() ?? 'Nome não informado',
               idade: item['idade']?.toString() ?? 'Idade não informada',
+
               imagePath: 'assets/images/default_avatar.png',
             );
           }).toList();
@@ -121,6 +122,7 @@ class _SelecionarPacienteConsultaState
             hora: widget.hora,
             especialidade: widget.especialidade,
             medicoNome: widget.medicoNome,
+            endereco: widget.endereco,
           ),
         ),
       );
@@ -168,13 +170,6 @@ class _SelecionarPacienteConsultaState
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navegação para adicionar novo paciente
-        },
-        backgroundColor: const Color.fromARGB(255, 106, 186, 213),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

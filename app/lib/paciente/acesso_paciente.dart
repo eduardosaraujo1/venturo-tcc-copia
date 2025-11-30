@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:algumacoisa/cuidador/home_cuidador_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 // Importação ajustada, altere para o nome correto da sua tela de login
 
 // --- CONFIGURAÇÃO DA API ---
@@ -171,7 +169,7 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
         enabledBorder: borderStyle,
         focusedBorder: focusStyle,
         filled: true,
-        fillColor: Colors.white,
+
         suffixIcon: isPassword
             ? IconButton(
                 // Botão de visibilidade de senha
@@ -214,19 +212,19 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
         ),
       ),
       filled: true,
-      fillColor: Colors.white,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -253,7 +251,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // Nome Completo do Paciente (Obrigatório)
               const Text(
                 "Nome Completo *",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               _buildTextField(
@@ -266,7 +267,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // --- NOVO: Email (Obrigatório) ---
               const Text(
                 "Email *",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               _buildTextField(
@@ -290,7 +294,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // --- NOVO: Senha (Obrigatório) ---
               const Text(
                 "Senha *",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               _buildTextField("Digite sua senha", _passwordController, (value) {
@@ -307,7 +314,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // Idade
               const Text(
                 "Idade (anos)",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               _buildTextField("Digite a idade", _ageController, (value) {
@@ -321,7 +331,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // Peso
               const Text(
                 "Peso (Kg)",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               _buildTextField("Digite o peso em Kg", _weightController, (
@@ -340,7 +353,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // Tipo Sanguíneo (Dropdown)
               const Text(
                 "Tipo Sanguíneo *",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -362,7 +378,10 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
               // Comorbidade
               const Text(
                 "Comorbidade (Ex: Diabetes, Hipertensão)",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color.fromARGB(137, 0, 0, 0),
+                ),
               ),
               const SizedBox(height: 8),
               _buildTextField(
@@ -374,12 +393,11 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
 
               const SizedBox(height: 40),
 
-              // Botão Cadastrar
+              // Botão Cadastrar - APENAS A FONTE ALTERADA PARA BRANCO
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitRegistration,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 106, 186, 213),
-                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -391,13 +409,16 @@ class _RegistraPacienteScreenState extends State<RegistraPacienteScreen> {
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 0, 0, 0),
                           strokeWidth: 2,
                         ),
                       )
                     : const Text(
                         "Cadastrar Paciente",
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white, // FONTE ALTERADA PARA BRANCO
+                        ),
                       ),
               ),
               const SizedBox(height: 40),

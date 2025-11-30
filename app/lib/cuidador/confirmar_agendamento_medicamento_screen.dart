@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
-import 'agendar_medicamento_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'notificacao_medicamento.dart';
+import 'agendar_medicamento_screen.dart';
 
 class ConfirmarAgendamentoMedicamentoScreen extends StatefulWidget {
   final String patientName;
@@ -233,13 +231,6 @@ class _ConfirmarAgendamentoMedicamentoScreenState
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Ação para adicionar novo medicamento
-        },
-        backgroundColor: const Color(0xFF6ABAD5),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

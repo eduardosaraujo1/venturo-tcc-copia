@@ -1,7 +1,7 @@
 import 'package:algumacoisa/cuidador/sentimentos_paciente_screen.dart';
 import '../config.dart';
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class RegistrosDiariosScreen extends StatefulWidget {
@@ -18,6 +18,7 @@ class _RegistrosDiariosScreenState extends State<RegistrosDiariosScreen> {
   final TextEditingController _otherController = TextEditingController();
   final TextEditingController _observationsController = TextEditingController();
   bool _isLoading = false;
+  bool _alreadySaved = false; // NOVO: Flag para evitar duplicação
 
   @override
   void dispose() {
@@ -26,8 +27,30 @@ class _RegistrosDiariosScreenState extends State<RegistrosDiariosScreen> {
     super.dispose();
   }
 
+  // Função para obter a inicial do nome do paciente
+  String _getInitial(String nome) {
+    if (nome.isEmpty) return '?';
+    return nome[0].toUpperCase();
+  }
+
+  // Função para gerar uma cor baseada no nome (para consistência)
+  Color _getAvatarColor(String nome) {
+    final colors = [
+      const Color(0xFF62A7D2),
+      const Color(0xFF6ABAD5),
+      const Color(0xFF1D3B51),
+      const Color(0xFF4CAF50),
+      const Color(0xFF9C27B0),
+      const Color(0xFFFF9800),
+      const Color(0xFF795548),
+    ];
+    final index = nome.hashCode % colors.length;
+    return colors[index];
+  }
+
   Future<void> _salvarRegistro() async {
-    if (_isLoading) return;
+    // CORREÇÃO: Verificar se já está salvando ou já salvou
+    if (_isLoading || _alreadySaved) return;
 
     setState(() {
       _isLoading = true;
@@ -51,6 +74,7 @@ class _RegistrosDiariosScreenState extends State<RegistrosDiariosScreen> {
         final Map<String, dynamic> data = json.decode(response.body);
 
         if (data['success'] == true) {
+          _alreadySaved = true; // MARCA como já salvo
           _navegarParaSentimentos();
         } else {
           _mostrarErro(data['message'] ?? 'Erro ao salvar registro');
@@ -77,9 +101,8 @@ class _RegistrosDiariosScreenState extends State<RegistrosDiariosScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SentimentosPacienteScreen(
-          paciente: widget.paciente,
-        ), // Adicione o paciente aqui
+        builder: (context) =>
+            SentimentosPacienteScreen(paciente: widget.paciente),
       ),
     );
   }
@@ -121,15 +144,10 @@ class _RegistrosDiariosScreenState extends State<RegistrosDiariosScreen> {
         ),
         centerTitle: true,
         actions: [
+          // CORREÇÃO: Remover o botão "Próximo" do AppBar ou deixar apenas visual
           TextButton(
-            onPressed: _isLoading ? null : _salvarRegistro,
-            child: _isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text('Próximo', style: TextStyle(color: Colors.blue)),
+            onPressed: null, // Desabilitado para evitar duplicação
+            child: Text('Próximo', style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -143,8 +161,15 @@ class _RegistrosDiariosScreenState extends State<RegistrosDiariosScreen> {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: Colors.grey[300],
-                    child: Icon(Icons.person, size: 40, color: Colors.grey),
+                    backgroundColor: _getAvatarColor(widget.paciente.nome),
+                    child: Text(
+                      _getInitial(widget.paciente.nome),
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   SizedBox(height: 8),
                   Text(

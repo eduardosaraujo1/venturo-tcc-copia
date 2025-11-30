@@ -1,14 +1,13 @@
+import 'package:flutter/material.dart';
+import '../config.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'register_step2_screen.dart';
+import 'package:algumacoisa/paciente/home_paciente.dart';
 import 'package:algumacoisa/cuidador/home_cuidador_screen.dart';
 import 'package:algumacoisa/familiar/home_familiar.dart';
-import 'package:algumacoisa/paciente/home_paciente.dart';
-import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
-import '../config.dart';
 import 'create_password_screen.dart';
-import 'register_step2_screen.dart';
 
 // URLs das APIs
 const String loginCuidadorUrl = '${Config.apiUrl}/api/cuidador/login';

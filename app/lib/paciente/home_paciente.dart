@@ -1,14 +1,13 @@
 import 'package:algumacoisa/paciente/notificacoes_screen.dart';
+import '../config.dart';
 import 'package:flutter/material.dart';
 import 'package:algumacoisa/paciente/agenda_paciente.dart';
 import 'package:algumacoisa/paciente/emergencia_paciente.dart';
 import 'package:algumacoisa/paciente/mensagems_paciente.dart';
 import 'package:algumacoisa/paciente/perfil_paciente.dart';
 import 'package:algumacoisa/paciente/sentimentos_paciente.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-import '../config.dart';
 
 class HomePaciente extends StatefulWidget {
   const HomePaciente({super.key});
@@ -319,7 +318,7 @@ class _HomePacienteState extends State<HomePaciente> {
       case 1:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => MensagemsPaciente()),
+          MaterialPageRoute(builder: (context) => ConversasPaciente()),
         );
         break;
       case 3:
@@ -411,94 +410,166 @@ class _HomePacienteState extends State<HomePaciente> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(avatarColor, inicial),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildInfoCard(
-              context: context,
-              icon: Icons.warning_amber_outlined,
-              title: 'Emergência',
-              subtitle: 'Clique para pedir ajuda',
-              iconColor: Colors.red,
-              onTap: _showEmergencyDialog,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 600;
+          final padding = isSmallScreen
+              ? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0)
+              : EdgeInsets.symmetric(
+                  horizontal: constraints.maxWidth * 0.1,
+                  vertical: 20.0,
+                );
+
+          return SingleChildScrollView(
+            padding: padding,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _buildInfoCard(
+                    context: context,
+                    icon: Icons.warning_amber_outlined,
+                    title: 'Emergência',
+                    subtitle: 'Clique para pedir ajuda',
+                    iconColor: Colors.red,
+                    onTap: _showEmergencyDialog,
+                    isSmallScreen: isSmallScreen,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Hoje:',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Exibir tarefas de hoje
+                  if (_isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (tarefasDeHoje.isEmpty &&
+                      medicamentosDeHoje.isEmpty &&
+                      consultasDeHoje.isEmpty)
+                    _buildInfoCard(
+                      context: context,
+                      icon: Icons.check_circle_outline,
+                      title: 'Nenhuma atividade para hoje',
+                      subtitle: 'Aproveite para descansar!',
+                      iconColor: Colors.green,
+                      onTap: () {},
+                      isSmallScreen: isSmallScreen,
+                    )
+                  else
+                    _buildAtividadesList(
+                      tarefasDeHoje: tarefasDeHoje,
+                      medicamentosDeHoje: medicamentosDeHoje,
+                      consultasDeHoje: consultasDeHoje,
+                      isSmallScreen: isSmallScreen,
+                    ),
+
+                  SizedBox(height: isSmallScreen ? 100 : 120),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Hoje:',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-
-            // Exibir tarefas de hoje
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
-            else ...[
-              // Tarefas
-              for (final tarefa in tarefasDeHoje)
-                _buildInfoCardComStatus(
-                  context: context,
-                  icon: Icons.task_alt,
-                  title: tarefa['motivacao'] ?? 'Tarefa',
-                  subtitle: tarefa['descricao'] ?? 'Descrição não disponível',
-                  iconColor: const Color.fromARGB(255, 106, 186, 213),
-                  status: tarefa['status'] ?? 'pendente',
-                  tipo: 'tarefa',
-                  id: tarefa['id'].toString(),
-                  onTap: () {},
-                ),
-
-              // Medicamentos
-              for (final medicamento in medicamentosDeHoje)
-                _buildInfoCardComStatus(
-                  context: context,
-                  icon: Icons.medical_services_outlined,
-                  title: medicamento['medicamento_nome'] ?? 'Medicamento',
-                  subtitle:
-                      '${medicamento['dosagem'] ?? 'Dosagem não informada'} - ${_formatarDataHora(medicamento['data_hora'] ?? '')}',
-                  iconColor: const Color.fromARGB(255, 106, 186, 213),
-                  status: medicamento['status'] ?? 'pendente',
-                  tipo: 'medicamento',
-                  id: medicamento['id'].toString(),
-                  onTap: () {},
-                ),
-
-              // Consultas
-              for (final consulta in consultasDeHoje)
-                _buildInfoCardComStatus(
-                  context: context,
-                  icon: Icons.person_pin_outlined,
-                  title: consulta['especialidade'] ?? 'Consulta',
-                  subtitle:
-                      '${consulta['medico_nome'] ?? 'Médico'} - ${_formatarDataHora(consulta['hora_consulta'] ?? '')}',
-                  iconColor: const Color.fromARGB(255, 106, 186, 213),
-                  status: consulta['status'] ?? 'pendente',
-                  tipo: 'consulta',
-                  id: consulta['id'].toString(),
-                  onTap: () {},
-                ),
-
-              // Mensagem quando não há atribuições
-              if (tarefasDeHoje.isEmpty &&
-                  medicamentosDeHoje.isEmpty &&
-                  consultasDeHoje.isEmpty)
-                _buildInfoCard(
-                  context: context,
-                  icon: Icons.check_circle_outline,
-                  title: 'Nenhuma atividade para hoje',
-                  subtitle: 'Aproveite para descansar!',
-                  iconColor: Colors.green,
-                  onTap: () {},
-                ),
-            ],
-
-            const SizedBox(height: 100),
-          ],
-        ),
+          );
+        },
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
+  }
+
+  Widget _buildAtividadesList({
+    required List<dynamic> tarefasDeHoje,
+    required List<dynamic> medicamentosDeHoje,
+    required List<dynamic> consultasDeHoje,
+    required bool isSmallScreen,
+  }) {
+    final todasAtividades = [
+      ...tarefasDeHoje.map((t) => _AtividadeItem(t, 'tarefa')),
+      ...medicamentosDeHoje.map((m) => _AtividadeItem(m, 'medicamento')),
+      ...consultasDeHoje.map((c) => _AtividadeItem(c, 'consulta')),
+    ];
+
+    // Ordenar por horário se disponível
+    todasAtividades.sort((a, b) {
+      final horaA = _extrairHora(a.item);
+      final horaB = _extrairHora(b.item);
+      return horaA.compareTo(horaB);
+    });
+
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: todasAtividades.length,
+      separatorBuilder: (context, index) =>
+          SizedBox(height: isSmallScreen ? 8 : 12),
+      itemBuilder: (context, index) {
+        final atividade = todasAtividades[index];
+        return _buildInfoCardComStatus(
+          context: context,
+          icon: _getIconPorTipo(atividade.tipo),
+          title: _getTituloPorTipo(atividade.item, atividade.tipo),
+          subtitle: _getSubtituloPorTipo(atividade.item, atividade.tipo),
+          iconColor: const Color.fromARGB(255, 106, 186, 213),
+          status: atividade.item['status'] ?? 'pendente',
+          tipo: atividade.tipo,
+          id: atividade.item['id'].toString(),
+          onTap: () {},
+          isSmallScreen: isSmallScreen,
+        );
+      },
+    );
+  }
+
+  DateTime _extrairHora(Map<String, dynamic> item) {
+    try {
+      final dataHora =
+          item['data_hora'] ?? item['hora_consulta'] ?? item['data_tarefa'];
+      if (dataHora != null) {
+        return DateTime.parse(dataHora);
+      }
+    } catch (e) {
+      print('Erro ao extrair hora: $e');
+    }
+    return DateTime.now();
+  }
+
+  IconData _getIconPorTipo(String tipo) {
+    switch (tipo) {
+      case 'tarefa':
+        return Icons.task_alt;
+      case 'medicamento':
+        return Icons.medical_services_outlined;
+      case 'consulta':
+        return Icons.person_pin_outlined;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  String _getTituloPorTipo(Map<String, dynamic> item, String tipo) {
+    switch (tipo) {
+      case 'tarefa':
+        return item['motivacao'] ?? 'Tarefa';
+      case 'medicamento':
+        return item['medicamento_nome'] ?? 'Medicamento';
+      case 'consulta':
+        return item['especialidade'] ?? 'Consulta';
+      default:
+        return 'Atividade';
+    }
+  }
+
+  String _getSubtituloPorTipo(Map<String, dynamic> item, String tipo) {
+    switch (tipo) {
+      case 'tarefa':
+        return item['descricao'] ?? 'Descrição não disponível';
+      case 'medicamento':
+        return '${item['dosagem'] ?? 'Dosagem não informada'} - ${_formatarDataHora(item['data_hora'] ?? '')}';
+      case 'consulta':
+        return '${item['medico_nome'] ?? 'Médico'} - ${_formatarDataHora(item['hora_consulta'] ?? '')}';
+      default:
+        return 'Detalhes não disponíveis';
+    }
   }
 
   PreferredSizeWidget _buildAppBar(Color avatarColor, String inicial) {
@@ -506,71 +577,89 @@ class _HomePacienteState extends State<HomePaciente> {
       toolbarHeight: 100,
       backgroundColor: const Color.fromARGB(0, 25, 190, 25),
       elevation: 0,
-      automaticallyImplyLeading: false, // ← LINHA ADICIONADA AQUI
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 106, 186, 213),
-              Color.fromARGB(255, 106, 186, 213),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => PerfilPaciente()),
-                  );
-                },
-                child: Row(
-                  children: [
-                    // Avatar com inicial do nome
-                    CircleAvatar(
-                      backgroundColor: avatarColor,
-                      radius: 24,
-                      child: Text(
-                        inicial,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+      automaticallyImplyLeading: false,
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 600;
+
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 106, 186, 213),
+                  Color.fromARGB(255, 106, 186, 213),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: isSmallScreen ? 40 : 50,
+                left: isSmallScreen ? 16 : 24,
+                right: isSmallScreen ? 16 : 24,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PerfilPaciente(),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            'Bem-vindo, ${_pacienteData['nome'] ?? 'Paciente'}.',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        // Avatar com inicial do nome
+                        CircleAvatar(
+                          backgroundColor: avatarColor,
+                          radius: isSmallScreen ? 24 : 28,
+                          child: Text(
+                            inicial,
+                            style: TextStyle(
                               color: Colors.white,
+                              fontSize: isSmallScreen ? 20 : 24,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                  ],
-                ),
+                        ),
+                        SizedBox(width: isSmallScreen ? 12 : 16),
+                        _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                'Bem-vindo, ${_pacienteData['nome'] ?? 'Paciente'}.',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 18 : 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.notifications_none,
+                      color: Colors.white,
+                      size: isSmallScreen ? 24 : 28,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Notificacoes()),
+                      );
+                    },
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Notificacoes()),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -581,34 +670,40 @@ class _HomePacienteState extends State<HomePaciente> {
     required String title,
     required String subtitle,
     required Color iconColor,
+    required bool isSmallScreen,
     VoidCallback? onTap,
   }) {
     return Card(
       elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 8 : 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: isSmallScreen
+              ? const EdgeInsets.all(16.0)
+              : const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              Icon(icon, size: 40, color: iconColor),
-              const SizedBox(width: 16),
+              Icon(icon, size: isSmallScreen ? 40 : 48, color: iconColor),
+              SizedBox(width: isSmallScreen ? 16 : 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: isSmallScreen ? 16 : 18,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(subtitle),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                    ),
                   ],
                 ),
               ),
@@ -628,6 +723,7 @@ class _HomePacienteState extends State<HomePaciente> {
     required String status,
     required String tipo,
     required String id,
+    required bool isSmallScreen,
     VoidCallback? onTap,
   }) {
     final statusColor = _getStatusColor(status);
@@ -637,30 +733,39 @@ class _HomePacienteState extends State<HomePaciente> {
 
     return Card(
       elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 8 : 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: isSmallScreen
+              ? const EdgeInsets.all(16.0)
+              : const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              Icon(icon, size: 40, color: iconColor),
-              const SizedBox(width: 16),
+              Icon(icon, size: isSmallScreen ? 40 : 48, color: iconColor),
+              SizedBox(width: isSmallScreen ? 16 : 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: isSmallScreen ? 16 : 18,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(subtitle),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 8),
                     // Badge de status
                     Container(
@@ -676,12 +781,16 @@ class _HomePacienteState extends State<HomePaciente> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(statusIcon, size: 14, color: statusColor),
+                          Icon(
+                            statusIcon,
+                            size: isSmallScreen ? 14 : 16,
+                            color: statusColor,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             statusText,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: isSmallScreen ? 12 : 14,
                               fontWeight: FontWeight.bold,
                               color: statusColor,
                             ),
@@ -695,7 +804,11 @@ class _HomePacienteState extends State<HomePaciente> {
               // Botão para marcar como feito
               if (podeMarcarComoFeito)
                 IconButton(
-                  icon: Icon(Icons.check_circle_outline, color: Colors.green),
+                  icon: Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                    size: isSmallScreen ? 24 : 28,
+                  ),
                   onPressed: () => _marcarComoFeito(tipo, id),
                   tooltip: 'Marcar como concluído',
                 ),
@@ -707,57 +820,60 @@ class _HomePacienteState extends State<HomePaciente> {
   }
 
   Widget _buildBottomNavigationBar() {
-    return BottomAppBar(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.calendar_today_outlined,
-              color: _selectedIndex == 0
-                  ? const Color.fromARGB(255, 106, 186, 213)
-                  : Colors.grey,
-            ),
-            onPressed: () => _onItemTapped(0),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 600;
+
+        return BottomAppBar(
+          padding: isSmallScreen
+              ? EdgeInsets.zero
+              : EdgeInsets.symmetric(horizontal: constraints.maxWidth * 0.2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              _buildBottomNavItem(
+                icon: Icons.calendar_today_outlined,
+                index: 0,
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildBottomNavItem(
+                icon: Icons.mail_outline,
+                index: 1,
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildBottomNavItem(
+                icon: Icons.home,
+                index: 2,
+                isSmallScreen: isSmallScreen,
+              ),
+            ],
           ),
-          IconButton(
-            icon: Icon(
-              Icons.mail_outline,
-              color: _selectedIndex == 1
-                  ? const Color.fromARGB(255, 106, 186, 213)
-                  : Colors.grey,
-            ),
-            onPressed: () => _onItemTapped(1),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.home,
-              color: _selectedIndex == 2
-                  ? const Color.fromARGB(255, 106, 186, 213)
-                  : Colors.grey,
-            ),
-            onPressed: () => _onItemTapped(2),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.sentiment_satisfied_outlined,
-              color: _selectedIndex == 3
-                  ? const Color.fromARGB(255, 106, 186, 213)
-                  : Colors.grey,
-            ),
-            onPressed: () => _onItemTapped(3),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.sick_outlined,
-              color: _selectedIndex == 4
-                  ? const Color.fromARGB(255, 106, 186, 213)
-                  : Colors.grey,
-            ),
-            onPressed: () => _onItemTapped(4),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  Widget _buildBottomNavItem({
+    required IconData icon,
+    required int index,
+    required bool isSmallScreen,
+  }) {
+    return IconButton(
+      icon: Icon(
+        icon,
+        color: _selectedIndex == index
+            ? const Color.fromARGB(255, 106, 186, 213)
+            : Colors.grey,
+        size: isSmallScreen ? 24 : 28,
+      ),
+      onPressed: () => _onItemTapped(index),
+    );
+  }
+}
+
+class _AtividadeItem {
+  final Map<String, dynamic> item;
+  final String tipo;
+
+  _AtividadeItem(this.item, this.tipo);
 }

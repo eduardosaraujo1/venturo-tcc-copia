@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:algumacoisa/dio_client.dart' as http;
-
 import '../config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 // Importa o modelo de dados e a tela de edição
 import 'caregiver_model.dart';
 import 'editar_perfil_screen.dart'; // Nome do arquivo de edição padronizado

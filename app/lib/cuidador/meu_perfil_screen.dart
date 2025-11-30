@@ -1,14 +1,13 @@
-import 'dart:convert'; // Para decodificar a resposta JSON
-
+import 'package:algumacoisa/cuidador/listaregistros.dart';
+import '../config.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert'; // Para decodificar a resposta JSON
 import 'package:http/http.dart'
     as http; // Adicionar esta biblioteca no pubspec.yaml
-
-import '../config.dart';
+import 'perfil_screen.dart';
 import 'configuracoes_screen.dart';
 import 'historico_registros_screen.dart';
 import 'login_screen.dart';
-import 'perfil_screen.dart';
 
 // Modelo de Dados Mínimo para o Perfil
 class CuidadorPerfil {
@@ -149,6 +148,32 @@ class _MeuPerfilScreenState extends State<MeuPerfilScreen> {
                   ),
                   _buildProfileItem(
                     context,
+                    icon: Icons.assignment_outlined,
+                    label: 'Registros Diários',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VisualizarRegistrosScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildProfileItem(
+                    context,
+                    icon: Icons.assignment_outlined,
+                    label: 'Histórico De Registros',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HistoricoDeRegistros(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildProfileItem(
+                    context,
                     icon: Icons.settings_outlined,
                     label: 'Configurações',
                     onTap: () {
@@ -166,19 +191,6 @@ class _MeuPerfilScreenState extends State<MeuPerfilScreen> {
                     label: 'Sair',
                     onTap: () {
                       _showLogoutDialog(context);
-                    },
-                  ),
-                  _buildProfileItem(
-                    context,
-                    icon: Icons.assignment_outlined,
-                    label: 'Histórico De Registros',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HistoricoDeRegistros(),
-                        ),
-                      );
                     },
                   ),
                 ],

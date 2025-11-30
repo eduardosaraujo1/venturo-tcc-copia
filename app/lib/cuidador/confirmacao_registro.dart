@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'home_cuidador_screen.dart';
 import 'listaregistros.dart';
-
 
 class ConfirmacaoScreen extends StatelessWidget {
   const ConfirmacaoScreen({super.key});
@@ -53,12 +53,14 @@ class ConfirmacaoScreen extends StatelessWidget {
                 SizedBox(height: 20),
            
                 SizedBox(height: 30),
+                // BOTÃO PARA VER REGISTRO
                 ElevatedButton(
                   onPressed: () {
-                    // Navega para a tela de registro diário completo
-                    Navigator.push(
+                    // CORREÇÃO: Remove todas as telas anteriores e vai para registros
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => VisualizarRegistrosScreen()),
+                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -71,6 +73,25 @@ class ConfirmacaoScreen extends StatelessWidget {
                   child: Text(
                     'Ver registro diario completo',
                     style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                SizedBox(height: 10),
+                // BOTÃO PARA VOLTAR AO INÍCIO
+                TextButton(
+                  onPressed: () {
+                    // CORREÇÃO: Remove todas as telas e volta para Home
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeCuidadorScreen()),
+                      (route) => false,
+                    );
+                  },
+                  child: Text(
+                    'Voltar ao Início',
+                    style: TextStyle(
+                      color: const Color(0xFF6ABAD5),
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ],

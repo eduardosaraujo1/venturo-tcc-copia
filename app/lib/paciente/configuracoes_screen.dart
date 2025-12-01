@@ -133,7 +133,7 @@ class ConfiguracoesPaciente extends StatelessWidget {
     try {
       // **IMPORTANTE: Use o IP da sua máquina, não localhost**
       const String baseUrl =
-          '${Config.apiUrl}'; // Substitua pelo IP do seu servidor
+          Config.apiUrl; // Substitua pelo IP do seu servidor
 
       final userId = await _obterUserId();
 

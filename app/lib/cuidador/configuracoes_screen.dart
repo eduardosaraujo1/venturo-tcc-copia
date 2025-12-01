@@ -120,7 +120,7 @@ class ConfiguracoesScreen extends StatelessWidget {
   Future<Map<String, dynamic>> deletarContaAPI() async {
     try {
       // Substitua pela URL do seu servidor
-      const String baseUrl = '${Config.apiUrl}'; // ou seu IP
+      const String baseUrl = Config.apiUrl; // ou seu IP
 
       // Obter o userId real
       final userId = await _obterUserId();

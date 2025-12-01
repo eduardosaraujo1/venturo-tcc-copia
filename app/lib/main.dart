@@ -1,3 +1,4 @@
+// Server: http://92.246.130.43:8080
 
 import 'package:flutter/material.dart';
 import 'package:algumacoisa/cuidador/login_screen.dart';
@@ -14,10 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Login App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home:LoginUnificadoScreen(),
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: LoginUnificadoScreen(),
     );
   }
 }

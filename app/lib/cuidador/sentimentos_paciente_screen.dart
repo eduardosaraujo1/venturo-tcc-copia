@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import 'sinais_clinicos_screen.dart';
 
 class SentimentosPacienteScreen extends StatefulWidget {

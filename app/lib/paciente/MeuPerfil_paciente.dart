@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import '../config.dart';
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+import '../config.dart';
+import 'editar_perfil_paciente_screen.dart.dart';
 
 class MeuperfilPaciente extends StatefulWidget {
   const MeuperfilPaciente({super.key});
@@ -75,6 +78,20 @@ class _MeuperfilPacienteState extends State<MeuperfilPaciente> {
     return colors[index];
   }
 
+  void _navegarParaEdicao() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditarPerfilPaciente(perfilData: _pacienteData),
+      ),
+    ).then((dadosAtualizados) {
+      // Atualiza a tela quando retornar da edição
+      if (dadosAtualizados != null) {
+        _carregarDadosPaciente(); // Recarrega os dados
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final nomeCompleto = _pacienteData['nome'] ?? '';
@@ -85,9 +102,7 @@ class _MeuperfilPacienteState extends State<MeuperfilPaciente> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text('Perfil'),
         centerTitle: true,
@@ -95,170 +110,193 @@ class _MeuperfilPacienteState extends State<MeuperfilPaciente> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage.isNotEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _errorMessage,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16, color: Colors.red),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _carregarDadosPaciente,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: corPrincipal,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Tentar Novamente'),
-                    ),
-                  ],
-                ),
+          ? _buildErrorWidget()
+          : _buildProfileWidget(nomeCompleto, inicial, avatarColor),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _errorMessage,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, color: Colors.red),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _carregarDadosPaciente,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: corPrincipal,
+                foregroundColor: Colors.white,
               ),
-            )
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    // Avatar circular com letra inicial
-                    Center(
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: avatarColor,
-                            radius: 50,
-                            child: Text(
-                              inicial,
-                              style: const TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            nomeCompleto.isNotEmpty
-                                ? nomeCompleto
-                                : 'Nome não informado',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          if (_pacienteData['email'] != null &&
-                              _pacienteData['email'].isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Text(
-                                _pacienteData['email'],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
+              child: const Text('Tentar Novamente'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                    // Seção de informações pessoais
-                    _buildInfoSection(
-                      icon: Icons.person_outline,
-                      label: 'Nome Completo',
-                      value: _pacienteData['nome'] ?? 'Não informado',
-                    ),
-                    _buildInfoSection(
-                      icon: Icons.email_outlined,
-                      label: 'Email',
-                      value: _pacienteData['email'] ?? 'Não informado',
-                    ),
-                    _buildInfoSection(
-                      icon: Icons.cake_outlined,
-                      label: 'Data de Nascimento',
-                      value:
-                          _pacienteData['data_nascimento'] ?? 'Não informada',
-                    ),
-                    _buildInfoSection(
-                      icon: Icons.location_on_outlined,
-                      label: 'Endereço',
-                      value: _pacienteData['endereco'] ?? 'Não informado',
-                    ),
+  Widget _buildProfileWidget(
+    String nomeCompleto,
+    String inicial,
+    Color avatarColor,
+  ) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            // Avatar e informações básicas
+            _buildProfileHeader(nomeCompleto, inicial, avatarColor),
+            const SizedBox(height: 30),
 
-                    // Seção de informações médicas
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Informações Médicas',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: corPrincipal,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+            // Seção de informações pessoais
+            _buildPersonalInfoSection(),
 
-                    _buildInfoSection(
-                      icon: Icons.bloodtype_outlined,
-                      label: 'Tipo Sanguíneo',
-                      value: _pacienteData['info_fisicas'] ?? 'Não informado',
-                    ),
-                    _buildInfoSection(
-                      icon: Icons.numbers_outlined,
-                      label: 'Idade',
-                      value: _pacienteData['idade'] != null
-                          ? '${_pacienteData['idade']} anos'
-                          : 'Não informada',
-                    ),
-                    _buildInfoSection(
-                      icon: Icons.monitor_weight_outlined,
-                      label: 'Peso',
-                      value: _pacienteData['peso'] != null
-                          ? '${_pacienteData['peso']} kg'
-                          : 'Não informado',
-                    ),
-                    _buildInfoSection(
-                      icon: Icons.medical_services_outlined,
-                      label: 'Comorbidades',
-                      value: _pacienteData['comorbidade'] ?? 'Não informadas',
-                    ),
+            // Seção de informações médicas
+            _buildMedicalInfoSection(),
 
-                    const SizedBox(height: 30),
+            const SizedBox(height: 30),
 
-                    // Botão de editar perfil
-                    ElevatedButton(
-                      onPressed: () {
-                        // Navegar para tela de edição
-                        // Navigator.push(context, MaterialPageRoute(builder: (context) => EditPerfilPacienteScreen()));
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: corPrincipal,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Editar Perfil',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+            // Botão de editar perfil
+            _buildEditButton(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                    const SizedBox(height: 20),
-                  ],
-                ),
+  Widget _buildProfileHeader(
+    String nomeCompleto,
+    String inicial,
+    Color avatarColor,
+  ) {
+    return Center(
+      child: Column(
+        children: [
+          CircleAvatar(
+            backgroundColor: avatarColor,
+            radius: 50,
+            child: Text(
+              inicial,
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            nomeCompleto.isNotEmpty ? nomeCompleto : 'Nome não informado',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          if (_pacienteData['email'] != null &&
+              _pacienteData['email'].isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text(
+                _pacienteData['email'],
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalInfoSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInfoSection(
+          icon: Icons.person_outline,
+          label: 'Nome Completo',
+          value: _pacienteData['nome'] ?? 'Não informado',
+        ),
+        _buildInfoSection(
+          icon: Icons.email_outlined,
+          label: 'Email',
+          value: _pacienteData['email'] ?? 'Não informado',
+        ),
+        _buildInfoSection(
+          icon: Icons.cake_outlined,
+          label: 'Data de Nascimento',
+          value: _pacienteData['data_nascimento'] ?? 'Não informada',
+        ),
+        _buildInfoSection(
+          icon: Icons.location_on_outlined,
+          label: 'Endereço',
+          value: _pacienteData['endereco'] ?? 'Não informado',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMedicalInfoSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        const Text(
+          'Informações Médicas',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: corPrincipal,
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        _buildInfoSection(
+          icon: Icons.bloodtype_outlined,
+          label: 'Tipo Sanguíneo',
+          value: _pacienteData['tipo_sanguineo'] ?? 'Não informado',
+        ),
+        _buildInfoSection(
+          icon: Icons.numbers_outlined,
+          label: 'Idade',
+          value: _pacienteData['idade'] != null
+              ? '${_pacienteData['idade']} anos'
+              : 'Não informada',
+        ),
+        _buildInfoSection(
+          icon: Icons.monitor_weight_outlined,
+          label: 'Peso',
+          value: _pacienteData['peso'] != null
+              ? '${_pacienteData['peso']} kg'
+              : 'Não informado',
+        ),
+        _buildInfoSection(
+          icon: Icons.medical_services_outlined,
+          label: 'Comorbidades',
+          value: _pacienteData['comorbidade'] ?? 'Não informadas',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditButton() {
+    return ElevatedButton(
+      onPressed: _navegarParaEdicao,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: corPrincipal,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: const Text(
+        'Editar Perfil',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -289,7 +327,7 @@ class _MeuperfilPacienteState extends State<MeuperfilPaciente> {
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
                 ),
               ],
             ),

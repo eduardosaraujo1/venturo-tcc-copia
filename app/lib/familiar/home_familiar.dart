@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../config.dart';
+import 'dart:convert';
+
 import 'package:algumacoisa/familiar/agenda_familiar.dart';
 import 'package:algumacoisa/familiar/consultas_familiar.dart';
 import 'package:algumacoisa/familiar/conversas_familiar.dart';
@@ -7,10 +7,11 @@ import 'package:algumacoisa/familiar/emergencias_familiar.dart';
 import 'package:algumacoisa/familiar/medicamentos_familiar.dart';
 import 'package:algumacoisa/familiar/meu_perfil_screen.dart';
 import 'package:algumacoisa/familiar/notificacoes_screen.dart';
-import 'package:algumacoisa/familiar/sentimentos_familiar.dart';
 import 'package:algumacoisa/familiar/tarefas_familiar.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
+import '../config.dart';
 
 class HomeFamiliar extends StatefulWidget {
   const HomeFamiliar({super.key});
@@ -251,7 +252,7 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
             _buildInfoCard(
               icon: Icons.access_time,
               title: 'Consultas Hoje',
-              subtitle: 'clique para visualizar',
+              subtitle: 'clique para vizualizar',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ConsultasFamiliar()),
@@ -260,7 +261,7 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
             _buildInfoCard(
               icon: Icons.medical_services_outlined,
               title: 'Medicamentos a administrar',
-              subtitle: 'clique para visualizar',
+              subtitle: 'clique para vizualizar',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => MedicamentosFamiliar()),
@@ -278,19 +279,10 @@ class _HomeFamiliarState extends State<HomeFamiliar> {
             _buildInfoCard(
               icon: Icons.task_alt,
               title: 'Tarefas Pendentes',
-              subtitle: 'clique para visualizar',
+              subtitle: 'clique para vizualizar',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => TarefasFamiliar()),
-              ),
-            ),
-            _buildInfoCard(
-              icon: Icons.sick_outlined,
-              title: 'Sentimentos Paciente',
-              subtitle: 'clique para visualizar',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SentimentosFamiliar()),
               ),
             ),
 

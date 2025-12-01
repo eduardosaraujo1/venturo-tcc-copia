@@ -159,8 +159,9 @@ class _MedicamentosScreenState extends State<MedicamentosScreen> {
       Colors.amber,
     ];
 
-    if (letra.isEmpty || letra == '?')
+    if (letra.isEmpty || letra == '?') {
       return const Color.fromARGB(255, 0, 0, 0);
+    }
     final index = letra.codeUnitAt(0) % colors.length;
     return colors[index];
   }

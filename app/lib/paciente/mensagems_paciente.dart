@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:algumacoisa/familiar/chat_familiar.dart';
-import '../config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
+import '../config.dart';
 
 class ConversasPaciente extends StatelessWidget {
   const ConversasPaciente({super.key});
@@ -257,8 +259,6 @@ class ConversasPaciente extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildTab(Icons.message_outlined, 'conversas', true),
-                      _buildTab(Icons.call_outlined, 'chamadas', false),
-                      _buildTab(Icons.person_outline, 'contatos', false),
                     ],
                   ),
                 ),

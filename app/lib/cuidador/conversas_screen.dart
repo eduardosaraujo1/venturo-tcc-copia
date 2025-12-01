@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import '../config.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../config.dart';
 import 'chat_screen.dart';
 
 class ConversasScreen extends StatelessWidget {
@@ -271,8 +273,6 @@ class ConversasScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildTab(Icons.message_outlined, 'conversas', true),
-                      _buildTab(Icons.call_outlined, 'chamadas', false),
-                      _buildTab(Icons.person_outline, 'contatos', false),
                     ],
                   ),
                 ),

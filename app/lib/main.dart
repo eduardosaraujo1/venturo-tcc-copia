@@ -1,4 +1,4 @@
-// Server: http://92.246.130.43:8080
+// Server: http://92.246.128.188:8080
 
 import 'package:flutter/material.dart';
 import 'package:algumacoisa/cuidador/login_screen.dart';
